@@ -255,7 +255,7 @@ class DashboardControllerISpec extends IntegrationSpecBase with LoginStub with F
         stubKeystoreDashboard(SessionId, regId, "|||fake|||email")
         stubKeystoreCache(SessionId, "emailMismatchAudit")
 
-        stubGet(s"/company-registration/corporation-tax-registration/$regId/corporation-tax-registration", 200, statusResponseFromCR("held", regId))
+        stubGet(s"/company-registration/corporation-tax-registration/$regId/corporation-tax-registration", 200, statusResponseFromCR("submitted", regId))
         stubGet(s"/company-registration/corporation-tax-registration/$regId/fetch-held-time", 200, "1504774767050")
         stubGet(s"/company-registration/corporation-tax-registration/$regId/retrieve-email", 200, emailResult)
         stubGet(s"/paye-registration/$regId/status", 200, jsonOtherRegStatusDraft)
@@ -282,7 +282,7 @@ class DashboardControllerISpec extends IntegrationSpecBase with LoginStub with F
         stubKeystoreDashboard(SessionId, regId, "|||fake|||email")
         stubKeystoreCache(SessionId, "emailMismatchAudit")
 
-        stubGet(s"/company-registration/corporation-tax-registration/$regId/corporation-tax-registration", 200, statusResponseFromCR("held", regId))
+        stubGet(s"/company-registration/corporation-tax-registration/$regId/corporation-tax-registration", 200, statusResponseFromCR("submitted", regId))
         stubGet(s"/company-registration/corporation-tax-registration/$regId/fetch-held-time", 200, "1504774767050")
         stubGet(s"/company-registration/corporation-tax-registration/$regId/retrieve-email", 200, emailResult)
         stubGet(s"/paye-registration/$regId/status", 200, jsonOtherRegStatusDraft)
@@ -310,7 +310,7 @@ class DashboardControllerISpec extends IntegrationSpecBase with LoginStub with F
         stubKeystoreDashboard(SessionId, regId, "|||fake|||email")
         stubKeystoreCache(SessionId, "emailMismatchAudit")
 
-        stubGet(s"/company-registration/corporation-tax-registration/$regId/corporation-tax-registration", 200, statusResponseFromCR("held", regId))
+        stubGet(s"/company-registration/corporation-tax-registration/$regId/corporation-tax-registration", 200, statusResponseFromCR("submitted", regId))
         stubGet(s"/company-registration/corporation-tax-registration/$regId/fetch-held-time", 200, "1504774767050")
         stubGet(s"/company-registration/corporation-tax-registration/$regId/retrieve-email", 200, emailResult)
         stubGet(s"/paye-registration/$regId/status", 200, jsonOtherRegStatusDraft)
