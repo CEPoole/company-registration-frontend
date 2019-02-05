@@ -174,7 +174,7 @@ class RegistrationConfirmationControllerSpec extends SCRSSpec with PayloadFixtur
       showWithAuthorisedUserRetrieval(TestController.registrationConfirmation(confirmationPayload), externalID) {
         result =>
           status(result) shouldBe SEE_OTHER
-          redirectLocation(result) shouldBe Some("/register-your-company/submission-failure")
+          redirectLocation(result) shouldBe Some("/register-your-company/application-submitted")
       }
     }
 
