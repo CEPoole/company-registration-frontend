@@ -20,7 +20,8 @@ import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector}
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.auth.AuthFunction
 import forms.RegistrationEmailForm
-import models.RegistrationEmailModel
+import models.Email._
+import models.{Email, RegistrationEmailModel}
 import play.api.data.Form
 import play.api.mvc._
 import services.{CommonService, EmailVerificationService}
@@ -81,17 +82,21 @@ trait RegistrationEmailController extends FrontendController with AuthFunction w
       success =>
 
         if (success.currentEmail == "currentEmail") {
-          emailVerification.sendVerificationLink(emailFromAuth, regID)
-            .flatMap { emailVerifiedSuccess =>
-              scpVerifiedEmail(sCPEnabledFeature).map { ver =>
-                if (emailVerifiedSuccess.getOrElse(false) || ver) {
+          scpVerifiedEmail(sCPEnabledFeature).flatMap {
+            case true =>
+              updateEmailBlockForSCPUsers(regID,emailFromAuth).map { res =>
+              Redirect(routes.CompletionCapacityController.show())}
+            case false =>
+              emailVerification.sendVerificationLink(emailFromAuth, regID).map { emailVerifiedSuccess =>
+
+                if (emailVerifiedSuccess.getOrElse(false)) {
                   Redirect(routes.CompletionCapacityController.show())
                 }
                 else {
                   Redirect(controllers.verification.routes.EmailVerificationController.verifyShow())
                 }
               }
-            }
+          }
         } else {
           keystoreConnector.cache[RegistrationEmailModel]("RegEmail", success).map { keystoreOutput =>
             Redirect(routes.RegistrationEmailConfirmationController.show())
@@ -99,6 +104,7 @@ trait RegistrationEmailController extends FrontendController with AuthFunction w
         }
     )
   }
+
  protected def sCPEnabledFeature = {
     scrsFeatureSwitches("sCPEnabled") match {
       case Some(fs) => fs.enabled
@@ -106,4 +112,9 @@ trait RegistrationEmailController extends FrontendController with AuthFunction w
     }
   }
 
+  protected def updateEmailBlockForSCPUsers(regId: String, authEmail: String)(implicit hc: HeaderCarrier, request: Request[AnyContent]) = {
+    emailVerification.saveEmailBlock(regId, Email(authEmail, SCP, false, true, false)) map { ueb => ueb
+    }
+
+  }
 }

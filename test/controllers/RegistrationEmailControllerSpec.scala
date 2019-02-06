@@ -16,13 +16,17 @@
 
 package controllers
 
+import java.util.UUID
+
 import builders.AuthBuilder
 import controllers.reg.RegistrationEmailController
 import helpers.SCRSSpec
-import models.RegistrationEmailModel
+import models.{Email, RegistrationEmailModel}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.mockito.{ArgumentMatcher, Matchers}
 import org.scalatest.mockito.MockitoSugar
 import play.api.mvc.{AnyContent, Request, Result, Results}
@@ -43,6 +47,7 @@ class RegistrationEmailControllerSpec extends SCRSSpec with WithFakeApplication 
 
   class Setup {
     val controller = new RegistrationEmailController {
+
       override val scrsFeatureSwitches = mockSCRSFeatureSwitches
       val authConnector = mockAuthConnector
       val keystoreConnector = mockKeystoreConnector
@@ -64,7 +69,7 @@ class RegistrationEmailControllerSpec extends SCRSSpec with WithFakeApplication 
     }
 
     val mockOfFunction = () => Future.successful(Results.Ok(""))
-  }
+    }
 
   "show" should {
 
@@ -121,6 +126,7 @@ class RegistrationEmailControllerSpec extends SCRSSpec with WithFakeApplication 
   "submit" should {
     val featureSwitchTrue = BooleanFeatureSwitch("sCPEnabled", true)
     val featureSwitchFalse = BooleanFeatureSwitch("sCPEnabled", false)
+    val validEmail = Email("foo@bar.com","SCP",false,true,false)
 
     "return 400 when invalid data used " in new Setup {
 
@@ -180,7 +186,7 @@ class RegistrationEmailControllerSpec extends SCRSSpec with WithFakeApplication 
       mockAuthorisedUser(Future.successful(Some(true)))
       when(mockSCRSFeatureSwitches(Matchers.contains("sCPEnabled"))).thenReturn(Some(featureSwitchTrue))
       val req = FakeRequest().withFormUrlEncodedBody("registrationEmail" -> "currentEmail")
-
+      when(mockEmailService.saveEmailBlock(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any())).thenReturn(Future.successful(Some(validEmail)))
       mockKeystoreFetchAndGet[String]("registrationID", Some("regid"))
       when(mockEmailService.sendVerificationLink(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any())).thenReturn(Future.successful(Some(true)))
 
@@ -276,7 +282,7 @@ class RegistrationEmailControllerSpec extends SCRSSpec with WithFakeApplication 
       mockAuthorisedUser(Future.successful(Some(true)))
       when(mockSCRSFeatureSwitches(Matchers.contains("sCPEnabled"))).thenReturn(Some(featureSwitchTrue))
       val req = FakeRequest().withFormUrlEncodedBody("registrationEmail" -> "currentEmail")
-
+      when(mockEmailService.saveEmailBlock(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any())).thenReturn(Future.successful(Some(validEmail)))
       mockKeystoreFetchAndGet[String]("registrationID", Some("regid"))
       when(mockEmailService.sendVerificationLink(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any())).thenReturn(Future.successful(Some(false)))
       mockKeystoreFetchAndGet[RegistrationEmailModel]("RegEmail", Some(RegistrationEmailModel("currentEmail", Some("differentEmail"))))
@@ -300,7 +306,7 @@ class RegistrationEmailControllerSpec extends SCRSSpec with WithFakeApplication 
       mockAuthorisedUser(Future.successful(Some(true)))
       when(mockSCRSFeatureSwitches(Matchers.contains("sCPEnabled"))).thenReturn(Some(featureSwitchTrue))
       val req = FakeRequest().withFormUrlEncodedBody("registrationEmail" -> "currentEmail")
-
+      when(mockEmailService.saveEmailBlock(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any())).thenReturn(Future.successful(Some(validEmail)))
       mockKeystoreFetchAndGet[String]("registrationID", Some("regid"))
       when(mockEmailService.sendVerificationLink(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any())).thenReturn(Future.successful(None))
 

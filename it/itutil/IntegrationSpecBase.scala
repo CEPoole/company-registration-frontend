@@ -35,7 +35,8 @@ trait IntegrationSpecBase extends UnitSpec
                     businessActivitiesHandOff: Boolean = false,
                     paye: Boolean = false,
                     vat: Boolean = false,
-                    signPosting: Boolean = false) = {
+                    signPosting: Boolean = false,
+                    scpEnabled:Boolean = false) = {
     def enableFeature(fs: FeatureSwitch, enabled: Boolean) = {
       enabled match {
         case true => FeatureSwitch.enable(fs)
@@ -46,6 +47,7 @@ trait IntegrationSpecBase extends UnitSpec
     enableFeature(SCRSFeatureSwitches.businessActivitiesHandOff, businessActivitiesHandOff)
     enableFeature(SCRSFeatureSwitches.paye, paye)
     enableFeature(SCRSFeatureSwitches.vat, vat)
+    enableFeature(SCRSFeatureSwitches.sCPEnabled, scpEnabled)
 
   }
 

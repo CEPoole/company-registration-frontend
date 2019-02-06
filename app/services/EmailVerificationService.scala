@@ -148,7 +148,7 @@ trait EmailVerificationService {
     }
   }
 
-  private def saveEmailBlock(regId: String, email: Email)(implicit hc: HeaderCarrier, req: Request[AnyContent]):Future[Option[Email]] = {
+   def saveEmailBlock(regId: String, email: Email)(implicit hc: HeaderCarrier, req: Request[AnyContent]):Future[Option[Email]] = {
     crConnector.updateEmail(regId, email)
     //flatMap {
 //      case oe@Some(Email(address, _, linkSent, verified@true, _)) =>
@@ -176,12 +176,4 @@ trait EmailVerificationService {
       )
     } yield result
   }
-
-  private[services] def isUserScp(implicit hc : HeaderCarrier) : Future[Boolean] = {
-    //TODO this function will check whether a user is an SCP one when we get the technical detail on how to determine it.
-    //TODO for now this will always return false
-    Future.successful(false)
-  }
-
-
 }

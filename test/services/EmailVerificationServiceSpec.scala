@@ -247,11 +247,4 @@ class EmailVerificationServiceSpec extends UnitSpec with SCRSSpec with WithFakeA
       resultAsJson shouldBe expectedJson
     }
   }
-
-  "isUserSCP" should {
-    "always return a false for now" in new Setup {
-      await(stubbedService.isUserScp) shouldBe false
-    }
-  }
-
 }
