@@ -3,7 +3,6 @@ package www
 
 import java.util.UUID
 
-import config.FrontendAppConfig
 import fixtures.HandOffFixtures
 import itutil.{FakeAppConfig, IntegrationSpecBase, LoginStub, PayloadExtractor}
 import models.handoff.{NavLinks, PSCHandOff}
@@ -13,11 +12,11 @@ import play.api.test.FakeApplication
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.NavModelRepo
 import uk.gov.hmrc.mongo.MongoSpecSupport
-import utils.JweCommon
+import utils.Jwe
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class GroupControllerISpec extends IntegrationSpecBase with MongoSpecSupport with LoginStub with FakeAppConfig with HandOffFixtures {
+class GroupsControllerISpec extends IntegrationSpecBase with MongoSpecSupport with LoginStub with FakeAppConfig with HandOffFixtures {
 
   override implicit lazy val app = FakeApplication(additionalConfiguration = fakeConfig())
   val userId = "test-user-id"
@@ -53,15 +52,11 @@ class GroupControllerISpec extends IntegrationSpecBase with MongoSpecSupport wit
          |}
      """.stripMargin
 
-
-    val repo = new NavModelRepo {
-      override val mongo: ReactiveMongoComponent = app.injector.instanceOf[ReactiveMongoComponent]
-      override val appConfig: FrontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
-    }
-    await(repo.repository.drop)
-    await(repo.repository.count) shouldBe 0
+    val rc = app.injector.instanceOf[ReactiveMongoComponent]
+    val repo = new NavModelRepo(rc)
+    await(repo.repository.drop) shouldBe true
     await(repo.repository.ensureIndexes)
-    val jweDecryptor = app.injector.instanceOf[JweCommon]
+    val jweDecryptor = Jwe
   }
 
   s"${controllers.handoff.routes.GroupController.groupHandBack("").url}" should {

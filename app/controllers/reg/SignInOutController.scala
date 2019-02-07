@@ -17,11 +17,10 @@
 package controllers.reg
 
 import java.io.File
-import javax.inject.Inject
 
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector, FrontendConfig}
 import connectors._
-import controllers.auth.AuthFunction
+import controllers.auth.{AuthFunction, SCRSExternalUrls}
 import controllers.handoff.{routes => handoffRoutes}
 import controllers.verification.{routes => emailRoutes}
 import models.ThrottleResponse
@@ -30,29 +29,30 @@ import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services._
-import uk.gov.hmrc.auth.core.{AffinityGroup, Enrolments, PlayAuthConnector}
+import uk.gov.hmrc.auth.core.{AffinityGroup, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.binders.ContinueUrl
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 import utils.SCRSExceptions
 
 import scala.concurrent.Future
 
-class SignInOutControllerImpl @Inject()(val appConfig: FrontendAppConfig,
-                                        val authConnector: PlayAuthConnector,
-                                        val compRegConnector: CompanyRegistrationConnector,
-                                        val handOffService: HandOffService,
-                                        val emailService: EmailVerificationService,
-                                        val metrics: MetricsService,
-                                        val keystoreConnector: KeystoreConnector,
-                                        val enrolmentsService: EnrolmentsService) extends SignInOutController {
-
-  lazy val cRFEBaseUrl = appConfig.self
-  lazy val corsRenewHost = appConfig.corsRenewHost
+object SignInOutController extends SignInOutController with ServicesConfig{
+  val authConnector = FrontendAuthConnector
+  val compRegConnector = CompanyRegistrationConnector
+  val handOffService = HandOffServiceImpl
+  val emailService = EmailVerificationService
+  val enrolmentsService = EnrolmentsService
+  val metrics = MetricsService
+  val cRFEBaseUrl = FrontendConfig.self
+  val keystoreConnector = KeystoreConnector
+  val corsRenewHost = FrontendAppConfig.corsRenewHost
+  override val appConfig =  FrontendAppConfig
 }
 
 trait SignInOutController extends FrontendController with ControllerErrorHandler with CommonService with SCRSExceptions with AuthFunction {
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   val compRegConnector : CompanyRegistrationConnector
   val handOffService : HandOffService
@@ -62,7 +62,6 @@ trait SignInOutController extends FrontendController with ControllerErrorHandler
   val cRFEBaseUrl: String
   val keystoreConnector: KeystoreConnector
   val corsRenewHost: Option[String]
-
 
   def postSignIn(resend: Option[Boolean] = None, handOffID: Option[String] = None, payload: Option[String] = None): Action[AnyContent] = Action.async {
     implicit request =>
@@ -107,7 +106,6 @@ trait SignInOutController extends FrontendController with ControllerErrorHandler
       case _: Exception => InternalServerError(defaultErrorPage)
     }
   }
-
 
   private def redirectToHo1WithCachedRegistrationId(regid: String)(implicit hc: HeaderCarrier, request : Request[_]) = handOffService.cacheRegistrationID(regid) map { _ =>
     Redirect(handoffRoutes.BasicCompanyDetailsController.basicCompanyDetails())
@@ -156,7 +154,7 @@ trait SignInOutController extends FrontendController with ControllerErrorHandler
         "HO3-1" -> GroupController.groupHandBack(payload).url,
         "HO4"   -> CorporationTaxSummaryController.corporationTaxSummary(payload).url,
         "HO5b"  -> IncorporationSummaryController.returnToCorporationTaxSummary(payload).url
-      ).mapValues(url => s"${appConfig.self}$url")(handOffID)
+      ).mapValues(url => s"${FrontendConfig.self}$url")(handOffID)
     }
 
     (optHandOffID, optPayload) match {
@@ -187,7 +185,7 @@ trait SignInOutController extends FrontendController with ControllerErrorHandler
         case Some(str) => str.url
         case None => s"$cRFEBaseUrl${controllers.reg.routes.QuestionnaireController.show().url}"
       }
-      Future.successful(Redirect(appConfig.logoutURL, Map("continue" -> Seq(c))))
+      Future.successful(Redirect(SCRSExternalUrls.logoutURL, Map("continue" -> Seq(c))))
   }
 
   def renewSession: Action[AnyContent] = Action.async {

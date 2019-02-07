@@ -17,7 +17,6 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import connectors.{BusinessRegistrationConnector, BusinessRegistrationSuccessResponse}
 import controllers.reg.CompletionCapacityController
 import fixtures.BusinessRegistrationFixture
@@ -27,10 +26,9 @@ import models.{AboutYouChoiceForm, BusinessRegistration}
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.MetricsService
+import services.{MetaDataService, MetricsService}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 import uk.gov.hmrc.play.test.WithFakeApplication
 
@@ -47,10 +45,9 @@ class CompletionCapacityControllerSpec extends SCRSSpec with WithFakeApplication
       val keystoreConnector = mockKeystoreConnector
       val businessRegConnector = mockBusinessRegConnector
       val metaDataService = mockMetaDataService
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val metricsService: MetricsService = MetricServiceMock
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
 
   }
@@ -138,4 +135,6 @@ class CompletionCapacityControllerSpec extends SCRSSpec with WithFakeApplication
         status(result) shouldBe BAD_REQUEST
     }
   }
+
 }
+

@@ -16,14 +16,13 @@
 
 package connectors
 
-import javax.inject.Inject
-
-import config.{FrontendAppConfig, WSHttp}
+import config.WSHttp
 import play.api.Logger
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpPost, HttpResponse}
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -46,21 +45,22 @@ object GAEvents {
   val invalidDESEmailFromUserDetails = GAEvent.apply("invalidEmailCat", "invalidEmailAction", "invalidEmailLabel", Seq.empty, None)
 }
 
-class PlatformAnalyticsConnectorImpl @Inject()(val wSHttp: WSHttp, appConfig: FrontendAppConfig) extends PlatformAnalyticsConnector {
-  lazy val serviceUrl = appConfig.baseUrl("platform-analytics")
-  lazy val gaClientId = s"GA1.1.${Math.abs(Random.nextInt())}.${Math.abs(Random.nextInt())}"
+object PlatformAnalyticsConnector extends PlatformAnalyticsConnector with ServicesConfig {
+  lazy val serviceUrl = baseUrl("platform-analytics")
+  val http = WSHttp
+  val gaClientId = s"GA1.1.${Math.abs(Random.nextInt())}.${Math.abs(Random.nextInt())}"
 }
 
 trait PlatformAnalyticsConnector {
   val serviceUrl: String
-  val wSHttp: HttpPost with CorePost
+  val http: HttpPost with CorePost
   val gaClientId: String
 
   def sendEvents(events: GAEvent*)(implicit hc: HeaderCarrier): Future[Unit] = sendEvents(AnalyticsRequest(gaClientId, events))
 
   private def sendEvents(data: AnalyticsRequest)(implicit hc: HeaderCarrier) = {
     val url = s"$serviceUrl/platform-analytics/event"
-    wSHttp.POST[AnalyticsRequest, HttpResponse](url, data, Seq.empty).map{ _ => ()}.recoverWith {
+    http.POST[AnalyticsRequest, HttpResponse](url, data, Seq.empty).map{ _ => ()}.recoverWith {
       case e: Exception =>
         Logger.error(s"Couldn't send analytics event $data", e)
         Future.successful(())

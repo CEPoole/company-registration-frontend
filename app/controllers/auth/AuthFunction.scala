@@ -16,21 +16,21 @@
 
 package controllers.auth
 
-import config.FrontendAppConfig
 import models.auth.{AuthDetails, BasicCompanyAuthDetails}
 import play.api.Logger
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.emailVerified
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
 import uk.gov.hmrc.auth.core.{AuthorisedFunctions, _}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-trait AuthFunction extends FrontendController with AuthorisedFunctions {
-  val appConfig: FrontendAppConfig
+trait AuthFunction extends FrontendController with AuthorisedFunctions with ServicesConfig {
+
   val baseFunction: AuthorisedFunction = authorised(AuthProviders(GovernmentGateway) and ConfidenceLevel.L50)
 
   def ctAuthorised(body: => Future[Result])(implicit request: Request[AnyContent]): Future[Result] = {
@@ -83,9 +83,9 @@ trait AuthFunction extends FrontendController with AuthorisedFunctions {
   }
 
 
-  lazy val origin: String = appConfig.getString("appName")
+  val origin: String = getString("appName")
   def loginParams(hoID : Option[String], payload : Option[String]) = Map(
-    "continue" -> Seq(appConfig.continueURL(hoID, payload)),
+    "continue" -> Seq(SCRSExternalUrls.continueURL(hoID, payload)),
     "origin" -> Seq(origin)
   )
 
@@ -102,31 +102,13 @@ trait AuthFunction extends FrontendController with AuthorisedFunctions {
 
   def authErrorHandling(hoID : Option[String] = None, payload : Option[String] = None)
                               (implicit request: Request[AnyContent]) : PartialFunction[Throwable, Result] = {
-    case e: NoActiveSession => Redirect(appConfig.loginURL, loginParams(hoID, payload))
+    case e: NoActiveSession => Redirect(SCRSExternalUrls.loginURL, loginParams(hoID, payload))
     case InternalError(e)           =>
       Logger.warn(s"Something went wrong with a call to Auth with exception: ${e}")
       InternalServerError
     case e: AuthorisationException  =>
       Logger.info(s"auth returned $e and redirected user to 'incorrect-account-type' page")
       Redirect(controllers.verification.routes.EmailVerificationController.createGGWAccountAffinityShow())
+
   }
-
-    def scpVerifiedEmail(sCPEnabledFeature: Boolean)(implicit request: Request[AnyContent]): Future[Boolean] = {
-        if (sCPEnabledFeature) {
-          baseFunction.retrieve(emailVerified) {
-                case Some(em) => Future.successful(em)
-                case _ => Future.successful(false)
-        } recover {
-                case _ => false
-        }
-          }
-        else
-          {
-              Future.successful(false)
-            }
-
-        }
-
-
-
 }

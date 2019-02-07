@@ -16,19 +16,22 @@
 
 package services
 
-import javax.inject.Inject
-
 import audit.events.{EmailVerifiedEvent, EmailVerifiedEventDetail}
-import config.FrontendAppConfig
+import config.{FrontendAuditConnector, FrontendConfig}
 import connectors.{CompanyRegistrationConnector, EmailVerificationConnector, KeystoreConnector, SendTemplatedEmailConnector}
 import models.Email.GG
 import models.auth.AuthDetails
 import models.{Email, _}
 import play.api.mvc.{AnyContent, Request, Result, Results}
+import play.api.mvc.Result._
+import uk.gov.hmrc.auth.core.retrieve.{Email => GGEmail}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+import utils.SCRSFeatureSwitches
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NoStackTrace
 
@@ -39,15 +42,15 @@ case class NoEmail() extends EmailVerified
 case class VerifiedEmail() extends EmailVerified
 case class NotVerifiedEmail() extends EmailVerified
 
-class EmailVerificationServiceImpl @Inject()(val emailConnector: EmailVerificationConnector,
-                                             val crConnector: CompanyRegistrationConnector,
-                                             val keystoreConnector: KeystoreConnector,
-                                             val auditConnector: AuditConnector,
-                                             val handOffService: HandOffService,
-                                             val appConfig: FrontendAppConfig,
-                                             val templatedEmailConnector: SendTemplatedEmailConnector) extends EmailVerificationService {
-  lazy val returnUrl = appConfig.self
-  lazy val sendTemplatedEmailURL = appConfig.getConfString("email.returnToSCRSURL", throw new Exception("email.returnToSCRSURL not found"))
+object EmailVerificationService extends EmailVerificationService with ServicesConfig {
+  val emailConnector = EmailVerificationConnector
+  val templatedEmailConnector = SendTemplatedEmailConnector
+  val crConnector = CompanyRegistrationConnector
+  val returnUrl = FrontendConfig.self
+  val keystoreConnector = KeystoreConnector
+  val auditConnector = FrontendAuditConnector
+  val sendTemplatedEmailURL = getConfString("email.returnToSCRSURL", throw new Exception("email.returnToSCRSURL not found"))
+  val handOffService = HandOffServiceImpl
 }
 
 trait EmailVerificationService {
@@ -145,7 +148,7 @@ trait EmailVerificationService {
     }
   }
 
-  def saveEmailBlock(regId: String, email: Email)(implicit hc: HeaderCarrier, req: Request[AnyContent]):Future[Option[Email]] = {
+  private def saveEmailBlock(regId: String, email: Email)(implicit hc: HeaderCarrier, req: Request[AnyContent]):Future[Option[Email]] = {
     crConnector.updateEmail(regId, email)
     //flatMap {
 //      case oe@Some(Email(address, _, linkSent, verified@true, _)) =>
@@ -173,4 +176,12 @@ trait EmailVerificationService {
       )
     } yield result
   }
+
+  private[services] def isUserScp(implicit hc : HeaderCarrier) : Future[Boolean] = {
+    //TODO this function will check whether a user is an SCP one when we get the technical detail on how to determine it.
+    //TODO for now this will always return false
+    Future.successful(false)
+  }
+
+
 }

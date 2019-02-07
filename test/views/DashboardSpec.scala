@@ -24,7 +24,6 @@ import models.{Dashboard, IncorpAndCTDashboard, ServiceDashboard, ServiceLinks}
 import org.jsoup.Jsoup
 import org.mockito.Matchers
 import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
 import play.api.test.Helpers._
 import services.{DashboardBuilt, DashboardService}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, ~}
@@ -43,10 +42,9 @@ class DashboardSpec extends SCRSSpec with WithFakeApplication with AuthBuilder {
       override val authConnector = mockAuthConnector
       override val keystoreConnector = mockKeystoreConnector
       override val dashboardService = mockDashboardService
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val companiesHouseURL = "testUrl"
       override val appConfig = mockAppConfig
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
     }
   }
 
@@ -75,7 +73,7 @@ class DashboardSpec extends SCRSSpec with WithFakeApplication with AuthBuilder {
       val dashboard = Dashboard(
         "testCompanyName",
         IncorpAndCTDashboard(
-          "held", Some("10 October 2017"), Some("trans-12345"), Some("pay-12345"), None, None, Some("ack-12345"), None, None
+          "held" , Some("10 October 2017"), Some("trans-12345"), Some("pay-12345"), None, None, Some("ack-12345"), None, None
         ),
         ServiceDashboard("notStarted", None, None, ServiceLinks("payeURL", "otrsUrl", None, Some("foo")), Some(payeThresholds)),
         ServiceDashboard("submitted", None, Some("ack123"), ServiceLinks("vatURL", "otrsUrl", None, Some("foo")), Some(vatThresholds))
@@ -89,6 +87,46 @@ class DashboardSpec extends SCRSSpec with WithFakeApplication with AuthBuilder {
 
               when(mockDashboardService.checkForEmailMismatch(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any()))
           .thenReturn(Future.successful(true))
+
+      showWithAuthorisedUserRetrieval(controller.show, authDetails()) {
+        result =>
+          val document = Jsoup.parse(contentAsString(result))
+          document.title() shouldBe "Company registration overview"
+
+          Map(
+            "incorpStatusText" -> "Pending",
+            "incorpSubmissionDate" -> "10 October 2017",
+            "incorpTransID" -> "trans-12345",
+            "incorpPaymentReference" -> "pay-12345",
+            "incorpSubmittedText" -> "If your application is successful we'll send you an email with the company registration number and certificate within 2 working days of the submission date.",
+            "ctStatusText" -> "Pending",
+            "ackRef" -> "ack-12345",
+            "ctPendingText" -> "We've received your application but can't process it until we've set up the limited company."
+          ) foreach { case (element, message) =>
+            document.getElementById(element).text() shouldBe message
+          }
+      }
+    }
+
+    "make sure that the dashboard has the correct elements when the registration status is locked" in new Setup {
+
+      val dashboard = Dashboard(
+        "testCompanyName",
+        IncorpAndCTDashboard(
+          "locked" , Some("10 October 2017"), Some("trans-12345"), Some("pay-12345"), None, None, Some("ack-12345"), None, None
+        ),
+        ServiceDashboard("notStarted", None, None, ServiceLinks("payeURL", "otrsUrl", None, Some("foo")), Some(payeThresholds)),
+        ServiceDashboard("submitted", None, Some("ack123"), ServiceLinks("vatURL", "otrsUrl", None, Some("foo")), Some(vatThresholds))
+      )
+
+      when(mockKeystoreConnector.fetchAndGet[String](Matchers.any())(Matchers.any(), Matchers.any()))
+        .thenReturn(Future.successful(Some(regId)))
+
+      when(mockDashboardService.buildDashboard(Matchers.any(), Matchers.any())(Matchers.any()))
+        .thenReturn(Future.successful(DashboardBuilt(dashboard)))
+
+      when(mockDashboardService.checkForEmailMismatch(Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any()))
+        .thenReturn(Future.successful(true))
 
       showWithAuthorisedUserRetrieval(controller.show, authDetails()) {
         result =>

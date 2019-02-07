@@ -16,12 +16,10 @@
 
 package controllers.test
 
-import javax.inject.Inject
-
 import play.api.mvc.{Action, AnyContent, Controller}
 import uk.gov.hmrc.http.SessionKeys
 
-class EditSessionControllerImpl @Inject()() extends EditSessionController
+object EditSessionController extends EditSessionController
 
 trait EditSessionController extends Controller {
 

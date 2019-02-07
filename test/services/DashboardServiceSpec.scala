@@ -16,20 +16,19 @@
 
 package services
 
-import audit.events.EmailMismatchEvent
+import audit.events.{EmailMismatchEvent, EmailVerifiedEvent}
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import connectors.{NotStarted, SuccessfulResponse}
-import helpers.SCRSSpec
+import helpers.{AuthHelpers, SCRSSpec}
 import mocks.ServiceConnectorMock
 import models._
 import models.auth.AuthDetails
-import models.connectors.ConfirmationReferences
+import connectors.ConfirmationReferences
 import models.external.{OtherRegStatus, Statuses}
 import org.joda.time.DateTime
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
@@ -42,7 +41,10 @@ import utils.{BooleanFeatureSwitch, SCRSFeatureSwitches}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthBuilder with GuiceOneAppPerSuite {
+class DashboardServiceSpec extends SCRSSpec with AuthHelpers with ServiceConnectorMock with AuthBuilder with GuiceOneAppPerSuite {
+
+  implicit val auth = buildAuthContext
+
 
   val payeTestBaseUrl = "test"
   val payeTestUri = "/paye-uri"
@@ -72,8 +74,7 @@ class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthB
       override val featureFlag = mockfeatureFlag
       override val loggingDays = mockLoggingDays
       override val loggingTimes = mockLoggingTimes
-      override val thresholdService: ThresholdService = mockThresholdService
-      override val appConfig: FrontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+
     }
   }
 
@@ -94,9 +95,6 @@ class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthB
       override val featureFlag = mockfeatureFlag
       override val loggingDays = mockLoggingDays
       override val loggingTimes = mockLoggingTimes
-      override val thresholdService: ThresholdService = mockThresholdService
-      override val appConfig: FrontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
-
 
       override def buildIncorpCTDashComponent(regId: String, enrolments: Enrolments)(implicit hc: HeaderCarrier) = Future.successful(dash)
       override def getCompanyName(regId: String)(implicit hc: HeaderCarrier) = Future.successful("testCompanyName")
@@ -186,6 +184,8 @@ class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthB
     val draftDash = IncorpAndCTDashboard("draft", Some("10 October 2017"), Some(transId), Some(payRef), None, None, Some(ackRef), None, None)
     val rejectedDash = IncorpAndCTDashboard("rejected", Some("10 October 2017"), Some(transId), Some(payRef), None, None, Some(ackRef), None, None)
     val heldDash = IncorpAndCTDashboard("held", Some("10 October 2017"), Some(transId), Some(payRef), None, None, Some(ackRef), None, None)
+    val lockedDash = IncorpAndCTDashboard("locked", Some("10 October 2017"), Some(transId), Some(payRef), None, None, Some(ackRef), None, None)
+
 
     val payeDash = ServiceDashboard("", None, None, ServiceLinks(payeUrl, "OTRS url", None, Some("/register-your-company/cancel-paye")), Some(payeThresholds))
     val payeStatus = OtherRegStatus("", None, None, Some("foo"), None)
@@ -211,7 +211,7 @@ class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthB
       res shouldBe RejectedIncorp
     }
 
-    "return a DashboardBuilt DashboardStatus when the status of the registration is any other status" in new SetupWithDash(heldDash) {
+    "return a DashboardBuilt DashboardStatus when the status of the registration is held" in new SetupWithDash(heldDash) {
       getStatusMock(SuccessfulResponse(payeStatus))
 
       mockPayeFeature(true)
@@ -219,6 +219,15 @@ class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthB
       val res = await(service.buildDashboard(regId, vatEnrolment))
       res shouldBe DashboardBuilt(Dashboard("", heldDash, payeDash, vatDashOTRS, hasVATCred = true))
     }
+
+     "return a DashboardBuilt DashboardStatus when the status of the registration is locked" in new SetupWithDash(lockedDash) {
+        getStatusMock(SuccessfulResponse(payeStatus))
+
+        mockPayeFeature(true)
+        mockVatFeature(false)
+        val res = await(service.buildDashboard(regId, vatEnrolment))
+        res shouldBe DashboardBuilt(Dashboard("", lockedDash, payeDash, vatDashOTRS, hasVATCred = true))
+      }
   }
 
   "buildIncorpCTDashComponent" should {
@@ -232,6 +241,14 @@ class DashboardServiceSpec extends SCRSSpec with ServiceConnectorMock with AuthB
 
       val res = await(service.buildIncorpCTDashComponent(regId, noEnrolments))
       res shouldBe IncorpAndCTDashboard("held", Some("10 October 2017"), Some(transId), Some(payRef), None, None, Some(ackRef), None, None)
+    }
+
+    "return a correct IncorpAndCTDashboard when the status is locked" in new Setup {
+      when(mockCompanyRegistrationConnector.retrieveCorporationTaxRegistration(eqTo(regId))(any())).thenReturn(Future.successful(ctRegJson("locked")))
+      when(mockCompanyRegistrationConnector.fetchHeldSubmissionTime(eqTo(regId))(any())).thenReturn(Future.successful(Some(dateAsJson)))
+
+      val res = await(service.buildIncorpCTDashComponent(regId, noEnrolments))
+      res shouldBe IncorpAndCTDashboard("locked", Some("10 October 2017"), Some(transId), Some(payRef), None, None, Some(ackRef), None, None)
     }
 
     "return a correct IncorpAndCTDashboard when the status is submitted" in new Setup {

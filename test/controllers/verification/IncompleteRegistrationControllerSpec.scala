@@ -20,7 +20,6 @@ import controllers.reg.IncompleteRegistrationController
 import mocks.SCRSMocks
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
@@ -30,7 +29,6 @@ class IncompleteRegistrationControllerSpec extends UnitSpec with WithFakeApplica
   class Setup {
     object TestController extends IncompleteRegistrationController {
       override val appConfig = mockAppConfig
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
     }
     when(mockAppConfig.piwikURL).thenReturn(None)
   }

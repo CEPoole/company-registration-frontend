@@ -16,6 +16,7 @@
 
 package connectors
 
+import config.WSHttp
 import fixtures.BusinessRegistrationFixture
 import helpers.SCRSSpec
 import models.{Address, BusinessRegistration, CompanyContactDetailsApi}
@@ -34,15 +35,18 @@ class BusinessRegistrationConnectorSpec extends SCRSSpec with BusinessRegistrati
   trait Setup {
     val connector = new BusinessRegistrationConnector {
       override val businessRegUrl = "testBusinessRegUrl"
-      override val wsHttp = mockWSHttp
+      override val http = mockWSHttp
     }
   }
 
   val registrationId = "reg-12345"
 
   "BusinessRegistrationConnector" should {
-    "use the correct businessRegUrl" in new Setup {
-      connector.businessRegUrl shouldBe "testBusinessRegUrl"
+    "use the correct businessRegUrl" in {
+      BusinessRegistrationConnector.businessRegUrl shouldBe "http://localhost:9660"
+    }
+    "use the correct http" in {
+      BusinessRegistrationConnector.http shouldBe WSHttp
     }
   }
 

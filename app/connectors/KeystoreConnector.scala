@@ -16,19 +16,18 @@
 
 package connectors
 
-import javax.inject.Inject
-
+import config.SCRSSessionCache
 import play.api.libs.json.Format
 import uk.gov.hmrc.http.cache.client.{CacheMap, SessionCache}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class KeystoreConnectorImpl @Inject()(val sessionCache: SessionCache) extends KeystoreConnector
+object KeystoreConnector extends KeystoreConnector
 
 trait KeystoreConnector {
-  val sessionCache: SessionCache
+  val sessionCache: SessionCache = SCRSSessionCache
 
   def cache[T](formId: String, body : T)(implicit hc: HeaderCarrier, format: Format[T]): Future[CacheMap] = {
     sessionCache.cache[T](formId, body)
@@ -45,4 +44,6 @@ trait KeystoreConnector {
   def remove()(implicit hc : HeaderCarrier) : Future[HttpResponse] = {
     sessionCache.remove()
   }
+
+
 }

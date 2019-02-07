@@ -28,7 +28,7 @@ class NavModelRepositorySpec extends UnitSpec with MongoSpecSupport with WithFak
 
   class Setup {
 
-    val repo = new NavModelRepoMongo(mongo,100)
+    val repo = new NavModelRepoMongo(mongo)
 
     await(repo.drop)
     await(repo.ensureIndexes)
@@ -38,7 +38,7 @@ class NavModelRepositorySpec extends UnitSpec with MongoSpecSupport with WithFak
 
   class SetupWithIndexes(indexList: List[Index]) {
 
-    val repo = new NavModelRepoMongo(mongo,100){
+    val repo = new NavModelRepoMongo(mongo){
       override def additionalIndexes: List[Index] = indexList
     }
 

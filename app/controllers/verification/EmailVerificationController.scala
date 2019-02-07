@@ -16,42 +16,39 @@
 
 package controllers.verification
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector, FrontendConfig}
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.auth.AuthFunction
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Result}
 import services.EmailVerificationService
-import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.play.binders.ContinueUrl
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import utils.SessionRegistration
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.{MessagesSupport, SessionRegistration}
 import views.html.verification.{CreateGGWAccount, CreateNewGGWAccount, createNewAccount, verifyYourEmail}
 
 import scala.concurrent.Future
 
-class EmailVerificationControllerImpl @Inject()(val authConnector: PlayAuthConnector,
-                                                val keystoreConnector: KeystoreConnector,
-                                                val emailVerificationService: EmailVerificationService,
-                                                val compRegConnector: CompanyRegistrationConnector,
-                                                val appConfig: FrontendAppConfig,
-                                                val messagesApi: MessagesApi) extends EmailVerificationController {
-  lazy val createGGWAccountUrl = appConfig.getConfString("gg-reg-fe.url", throw new Exception("Could not find config for gg-reg-fe url"))
-  lazy val callbackUrl = appConfig.getConfString("auth.login-callback.url", throw new Exception("Could not find config for callback url"))
-  lazy val frontEndUrl= appConfig.self
-
+object EmailVerificationController extends EmailVerificationController with ServicesConfig {
+  val authConnector = FrontendAuthConnector
+  val keystoreConnector = KeystoreConnector
+  val createGGWAccountUrl = getConfString("gg-reg-fe.url", throw new Exception("Could not find config for gg-reg-fe url"))
+  val callbackUrl = getConfString("auth.login-callback.url", throw new Exception("Could not find config for callback url"))
+  val frontEndUrl=FrontendConfig.self
+  val emailVerificationService = EmailVerificationService
+  val companyRegistrationConnector = CompanyRegistrationConnector
+  override val appConfig: AppConfig  = FrontendAppConfig
 }
 
-trait EmailVerificationController extends FrontendController with AuthFunction with SessionRegistration with I18nSupport {
+trait EmailVerificationController extends FrontendController with AuthFunction with SessionRegistration with MessagesSupport {
 
-  implicit val appConfig: FrontendAppConfig
   val keystoreConnector : KeystoreConnector
   val createGGWAccountUrl: String
   val callbackUrl: String
   val frontEndUrl : String
   val emailVerificationService: EmailVerificationService
+
+  implicit val appConfig: AppConfig  = FrontendAppConfig
 
   val verifyShow: Action[AnyContent] = Action.async {
     implicit request =>
@@ -70,6 +67,7 @@ trait EmailVerificationController extends FrontendController with AuthFunction w
           }
         }
       }
+
   }
 
   val verifySubmit: Action[AnyContent] = Action.async { implicit request =>

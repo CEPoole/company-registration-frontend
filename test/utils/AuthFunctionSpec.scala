@@ -17,7 +17,6 @@
 package utils
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import controllers.auth.AuthFunction
 import fixtures.LoginFixture
 import helpers.SCRSSpec
@@ -27,7 +26,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.AuthorisationException
 import uk.gov.hmrc.auth.core.retrieve._
-import uk.gov.hmrc.http.{HeaderCarrier, InternalServerException}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.WithFakeApplication
 
 import scala.concurrent.Future
@@ -42,20 +41,18 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
   trait Setup {
     val support = new AuthFunction {
       override def authConnector = mockAuthConnector
-
-      override val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
     }
   }
 
   "authErrorHandling" should {
     Map("case 1" -> "InsufficientConfidenceLevel",
-      "case 2" -> "UnsupportedAffinityGroup",
-      "case 3" -> "UnsupportedCredentialRole",
-      "case 4" -> "UnsupportedAuthProvider",
-      "case 9" -> "IncorrectCredentialStrength",
-      "case 10" -> "InsufficientEnrolments").foreach {
+    "case 2" -> "UnsupportedAffinityGroup",
+    "case 3" -> "UnsupportedCredentialRole",
+    "case 4" -> "UnsupportedAuthProvider",
+    "case 9" -> "IncorrectCredentialStrength" ,
+    "case 10" -> "InsufficientEnrolments" ).foreach{
       tst =>
-        val (test, ex) = tst
+        val (test,ex) = tst
         s"$test redirect to incorrect account type page if auth returns $ex" in new Setup {
           Try(throw AuthorisationException.fromString(ex))
             .recover(support.authErrorHandling()).get.header.headers(HeaderNames.LOCATION) shouldBe controllers.verification.routes.EmailVerificationController.createGGWAccountAffinityShow().url
@@ -68,7 +65,7 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
     Map("case 5" -> "BearerTokenExpired",
       "case 6" -> "MissingBearerToken",
       "case 7" -> "InvalidBearerToken",
-      "case 8" -> "SessionRecordNotFound").foreach {
+      "case 8" -> "SessionRecordNotFound").foreach{
       tst =>
         val (test, ex) = tst
         s"$test redirect to sign in  with postsignin as continue url for $ex" in new Setup {
@@ -82,10 +79,10 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
       "case 2" -> "UnsupportedAffinityGroup",
       "case 3" -> "UnsupportedCredentialRole",
       "case 4" -> "UnsupportedAuthProvider",
-      "case 9" -> "IncorrectCredentialStrength",
-      "case 10" -> "InsufficientEnrolments").foreach {
+      "case 9" -> "IncorrectCredentialStrength" ,
+      "case 10" -> "InsufficientEnrolments" ).foreach{
       tst =>
-        val (test, ex) = tst
+        val (test,ex) = tst
         s"$test redirect to incorrect account type page if auth returns $ex" in new Setup {
           Try(throw AuthorisationException.fromString(ex))
             .recover(support.authErrorHandlingIncomplete).get.header.headers(HeaderNames.LOCATION) shouldBe controllers.verification.routes.EmailVerificationController.createGGWAccountAffinityShow().url
@@ -98,7 +95,7 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
     Map("case 5" -> "BearerTokenExpired",
       "case 6" -> "MissingBearerToken",
       "case 7" -> "InvalidBearerToken",
-      "case 8" -> "SessionRecordNotFound").foreach {
+      "case 8" -> "SessionRecordNotFound").foreach{
       tst =>
         val (test, ex) = tst
         s"$test redirect to sign in  with postsignin as continue url for $ex" in new Setup {
@@ -157,14 +154,14 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
   "ctAuthorisedOptStr" should {
     "return Ok when auth returns a retrieval the user was expecting" in new Setup {
       mockAuthorisedUser(Future.successful(Some("foo")))
-      val result = support.ctAuthorisedOptStr(Retrievals.externalId)((s: String) => Future.successful(Results.Ok(s"$s")))
+      val result = support.ctAuthorisedOptStr(Retrievals.externalId)((s:String) => Future.successful(Results.Ok(s"$s")))
       val response = await(result)
       response.header.status shouldBe 200
       contentAsString(response) shouldBe "foo"
     }
     "return an internal server error if auth does not return something expected in the retrieval passed in" in new Setup {
       mockAuthorisedUser(Future.successful(None))
-      val result = support.ctAuthorisedOptStr(Retrievals.externalId)((s: String) => Future.successful(Results.Ok(s"$s")))
+      val result = support.ctAuthorisedOptStr(Retrievals.externalId)((s:String) => Future.successful(Results.Ok(s"$s")))
       val response = await(result)
       response.header.status shouldBe 500
       contentAsString(response) shouldBe ""
@@ -174,7 +171,6 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
     Name(Some("myFirstName"), Some("myLastName")),
     Some("fakeEmail")
   )
-
   val authMissing = new ~(
     Name(Some("myFirstName"), Some("myLastName")),
     None
@@ -190,7 +186,7 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
   "ctAuthorisedCompanyContact" should {
     "return Ok when all required components are returned from auth" in new Setup {
       mockAuthorisedUser(Future.successful(authDetails))
-      val result = support.ctAuthorisedCompanyContact((s: String) => Future.successful(Results.Ok(s"$s")))
+      val result = support.ctAuthorisedCompanyContact((s:String) => Future.successful(Results.Ok(s"$s")))
       val response = await(result)
       response.header.status shouldBe 200
       contentAsString(response) shouldBe "fakeEmail"
@@ -198,7 +194,7 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
     }
     "return internal server error When Not all the components are returned from auth" in new Setup {
       mockAuthorisedUser(Future.successful(authMissing))
-      val result = support.ctAuthorisedCompanyContact((s: String) => Future.successful(Results.Ok(s"$s")))
+      val result = support.ctAuthorisedCompanyContact((s:String) => Future.successful(Results.Ok(s"$s")))
       intercept[Exception](await(result))
     }
   }
@@ -206,7 +202,7 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
     "return Ok when all required components are returned from auth" in new Setup {
       mockAuthorisedUser(Future.successful(authDetailsAmend))
       val result = support.ctAuthorisedCompanyContactAmend(
-        (s: String, c: Credentials, ss: String) => Future.successful(Results.Ok(s"$s$c$ss")))
+        (s:String, c:Credentials, ss:String) => Future.successful(Results.Ok(s"$s$c$ss")))
       val response = await(result)
       response.header.status shouldBe 200
       contentAsString(response) shouldBe "fakeEmailCredentials(credID,provID)extID"
@@ -216,75 +212,8 @@ class AuthFunctionSpec extends SCRSSpec with AuthBuilder with WithFakeApplicatio
     "return internal server error When Not all the components are returned from auth" in new Setup {
       mockAuthorisedUser(Future.successful(authDetails))
       val result = support.ctAuthorisedCompanyContactAmend(
-        (s: String, c: Credentials, ss: String) => Future.successful(Results.Ok(s"$s$c$ss")))
-      intercept[Exception](await(result))
+        (s:String, c:Credentials, ss:String) => Future.successful(Results.Ok(s"$s$c$ss")))
+     intercept[Exception](await(result))
     }
   }
-
-  "scpVerifiedEmail" should {
-
-    "Return a true if the email has been verified and the SCP feature flag is true" in new Setup {
-
-      mockAuthorisedUser(Future.successful(Some(true)))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = true)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe true
-    }
-
-    "Return a false if the email has been verified but the SCP feature flag is false." in new Setup {
-
-      mockAuthorisedUser(Future.successful(Some(true)))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = false)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe false
-    }
-
-    "Return a false if the email has not been verified" in new Setup {
-
-      mockAuthorisedUser(Future.successful(Some(false)))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = false)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe false
-    }
-
-    "Return a false if the email has not been verified and the SCP feature flag is true" in new Setup {
-
-      mockAuthorisedUser(Future.successful(Some(false)))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = true)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe false
-    }
-
-    "Return a false if the email is missing and SCP feature flag is false" in new Setup {
-
-      mockAuthorisedUser(Future.successful(None))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = false)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe false
-    }
-
-    "Return a false if the email is missing and SCP feature flag is true" in new Setup {
-
-      mockAuthorisedUser(Future.successful(None))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = true)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe false
-    }
-
-    "Return a false if an error is returned from the SCP verified email function and SCP feature flag is true" in new Setup {
-
-      mockAuthorisedUser(Future.failed(new InternalServerException("error")))
-      val res = support.scpVerifiedEmail(sCPEnabledFeature = true)
-      val awaitedFuture: Boolean = await(res)
-
-      awaitedFuture shouldBe false
-    }
-  }
-
 }

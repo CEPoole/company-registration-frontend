@@ -16,26 +16,24 @@
 
 package controllers.test
 
-import javax.inject.Inject
-
-import config.{FrontendAppConfig, WSHttp}
+import config.WSHttp
 import play.api.libs.json.JsValue
 import play.api.mvc.Action
 import uk.gov.hmrc.http.{HeaderCarrier, HttpGet}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
 
-class CTMongoTestControllerImpl @Inject()(val wSHttp: WSHttp,
-                                          val appConfig: FrontendAppConfig) extends CTMongoTestController {
-
-  lazy val ctUrl = appConfig.baseUrl("company-registration")
+object CTMongoTestController extends CTMongoTestController with ServicesConfig {
+  val http = WSHttp
+  val ctUrl = baseUrl("company-registration")
 }
 
 trait CTMongoTestController extends FrontendController {
 
-  val wSHttp: HttpGet
+  val http: HttpGet
   val ctUrl: String
 
   def dropCollection = Action.async {
@@ -49,6 +47,6 @@ trait CTMongoTestController extends FrontendController {
   }
 
   def dropCTCollection(implicit hc: HeaderCarrier): Future[JsValue] = {
-    wSHttp.GET[JsValue](s"$ctUrl/company-registration/test-only/drop-ct")
+    http.GET[JsValue](s"$ctUrl/company-registration/test-only/drop-ct")
   }
 }

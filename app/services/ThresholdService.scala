@@ -16,21 +16,21 @@
 
 package services
 
-import javax.inject.Inject
-
 import connectors.VatThresholdConnector
 import org.joda.time.LocalDate
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.Future
 
-class ThresholdServiceImpl @Inject()(val vatThresholdConnector: VatThresholdConnector) extends ThresholdService {
-  def now: LocalDate = LocalDate.now()
+object ThresholdService extends ThresholdService with ServicesConfig {
+  val vatThresholdConnector = VatThresholdConnector
+  override def now: LocalDate = LocalDate.now()
 }
 
 trait ThresholdService {
-val vatThresholdConnector: VatThresholdConnector
+
   def now: LocalDate
 
-  def fetchCurrentVatThreshold(implicit hc: HeaderCarrier): Future[String] = vatThresholdConnector.getVATThreshold(now)
+  def fetchCurrentVatThreshold(implicit hc: HeaderCarrier): Future[String] = VatThresholdConnector.getVATThreshold(now)
 }

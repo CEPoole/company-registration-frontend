@@ -16,32 +16,30 @@
 
 package controllers.test
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig}
 import connectors.{CompanyRegistrationConnector, DynamicStubConnector, KeystoreConnector}
 import forms.test.ETMPPost
 import models.test.{ETMPAcknowledgment, ETMPCTRecordUpdates, ETMPNotification}
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent}
 import services.CommonService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import utils.SCRSExceptions
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.{MessagesSupport, SCRSExceptions}
 import views.html.test.{CTUpdatesDisplay, EMTPPostView}
 
 import scala.concurrent.Future
 
-class ETMPNotificationTestControllerImpl @Inject()(val brdsConnector: DynamicStubConnector,
-                                                   val crConnector: CompanyRegistrationConnector,
-                                                   val keystoreConnector: KeystoreConnector,
-                                                   val appConfig: FrontendAppConfig,
-                                                   val messagesApi: MessagesApi) extends ETMPNotificationTestController
+object ETMPNotificationTestController extends ETMPNotificationTestController {
+  val brdsConnector = DynamicStubConnector
+  val crConnector = CompanyRegistrationConnector
+  val keystoreConnector = KeystoreConnector
+  override val appConfig =  FrontendAppConfig
+}
 
-trait ETMPNotificationTestController extends FrontendController with CommonService with SCRSExceptions with I18nSupport {
+trait ETMPNotificationTestController extends FrontendController with CommonService with SCRSExceptions with MessagesSupport {
   val brdsConnector : DynamicStubConnector
 
   val crConnector : CompanyRegistrationConnector
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   def show : Action[AnyContent] = Action.async {
     implicit request =>

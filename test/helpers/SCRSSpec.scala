@@ -19,11 +19,11 @@ package helpers
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import mocks.SCRSMocks
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.UnitSpec
+import org.mockito.Mockito._
 
 import scala.util.Random
 
@@ -35,7 +35,6 @@ trait SCRSSpec extends UnitSpec with MockitoSugar with SCRSMocks with BeforeAndA
 
   override def beforeEach() {
     resetMocks()
-
   }
 
   private val alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

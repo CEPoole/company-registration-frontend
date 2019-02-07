@@ -16,14 +16,12 @@
 
 package controllers.reg
 
-import javax.inject.Inject
-
 import play.api.mvc.Action
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-class ApplicationInProgressControllerImpl @Inject()() extends ApplicationInProgressController
+object ApplicationInProgressController extends ApplicationInProgressController
 
 trait ApplicationInProgressController extends FrontendController {
 

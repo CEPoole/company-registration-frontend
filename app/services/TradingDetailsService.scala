@@ -16,18 +16,18 @@
 
 package services
 
-import javax.inject.Inject
-
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import models.{TradingDetails, TradingDetailsResponse}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import utils.SCRSExceptions
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TradingDetailsServiceImpl @Inject()(val keystoreConnector: KeystoreConnector,
-                                          val compRegConnector: CompanyRegistrationConnector) extends TradingDetailsService
+object TradingDetailsService extends TradingDetailsService {
+  val keystoreConnector = KeystoreConnector
+  val compRegConnector = CompanyRegistrationConnector
+}
 
 trait TradingDetailsService extends CommonService with SCRSExceptions {
 

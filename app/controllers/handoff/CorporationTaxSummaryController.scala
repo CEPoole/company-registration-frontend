@@ -16,34 +16,30 @@
 
 package controllers.handoff
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector}
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.auth.AuthFunction
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent}
-import services.{HandBackService, HandOffService, NavModelNotFoundException}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import utils.{DecryptionError, PayloadError, SessionRegistration}
+import services.{HandBackService, NavModelNotFoundException}
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.{DecryptionError, MessagesSupport, PayloadError, SessionRegistration}
 import views.html.error_template_restart
 
 import scala.util.{Failure, Success}
 
-class CorporationTaxSummaryControllerImpl @Inject()(val authConnector: PlayAuthConnector,
-                                                    val keystoreConnector: KeystoreConnector,
-                                                    val handOffService: HandOffService,
-                                                    val appConfig: FrontendAppConfig,
-                                                    val compRegConnector: CompanyRegistrationConnector,
-                                                    val handBackService: HandBackService,
-                                                    val messagesApi: MessagesApi) extends CorporationTaxSummaryController
+object CorporationTaxSummaryController extends CorporationTaxSummaryController {
+  val authConnector = FrontendAuthConnector
+  val keystoreConnector = KeystoreConnector
+  val handBackService = HandBackService
+  val companyRegistrationConnector = CompanyRegistrationConnector
+  override val appConfig =  FrontendAppConfig
+}
 
-trait CorporationTaxSummaryController extends FrontendController with AuthFunction with I18nSupport with SessionRegistration {
+trait CorporationTaxSummaryController extends FrontendController with AuthFunction with MessagesSupport with SessionRegistration {
   val handBackService : HandBackService
 
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   //HO4
   def corporationTaxSummary(requestData : String) : Action[AnyContent] = Action.async {

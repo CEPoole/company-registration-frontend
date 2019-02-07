@@ -17,34 +17,33 @@
 package controllers.handoff
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
+import config.AppConfig
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import fixtures.LoginFixture
 import helpers.SCRSSpec
 import models.handoff.{GroupHandBackModel, NavLinks}
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
-import play.api.libs.json.Json
-import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.redirectLocation
 import services.{HandBackService, HandOffService, NavModelNotFoundException}
 import uk.gov.hmrc.play.test.WithFakeApplication
+import play.api.test.Helpers.defaultAwaitTimeout
+import org.mockito.Matchers._
+import org.mockito.Mockito._
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 
-class GroupControllerSpec extends SCRSSpec with LoginFixture with WithFakeApplication with AuthBuilder {
+class GroupsControllerSpec extends SCRSSpec with LoginFixture with WithFakeApplication with AuthBuilder {
 
   class Setup {
-    object TestController extends GroupController {
+    object TestController extends GroupsController {
       val authConnector = mockAuthConnector
       val handBackService: HandBackService = mockHandBackService
       val handOffService: HandOffService = mockHandOffService
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
+      implicit val appConfig: AppConfig = mockAppConfig
       val keystoreConnector: KeystoreConnector = mockKeystoreConnector
-      val compRegConnector: CompanyRegistrationConnector = mockCompanyRegistrationConnector
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      val companyRegistrationConnector: CompanyRegistrationConnector = mockCompanyRegistrationConnector
     }
   }
   "groupHandBack" should {

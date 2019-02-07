@@ -16,33 +16,30 @@
 
 package controllers.reg
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector}
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.auth.AuthFunction
 import forms.TradingDetailsForm
 import models.{TradingDetailsErrorResponse, TradingDetailsForbiddenResponse, TradingDetailsNotFoundResponse, TradingDetailsSuccessResponse}
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
 import services.{MetricsService, TradingDetailsService}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import utils.SessionRegistration
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.{MessagesSupport, SessionRegistration}
 import views.html.reg.TradingDetailsView
 
 import scala.concurrent.Future
 
-class TradingDetailsControllerImpl @Inject()(val authConnector: PlayAuthConnector,
-                                             val tradingDetailsService: TradingDetailsService,
-                                             val metricsService: MetricsService,
-                                             val compRegConnector: CompanyRegistrationConnector,
-                                             val keystoreConnector: KeystoreConnector,
-                                             val appConfig: FrontendAppConfig,
-                                             val messagesApi: MessagesApi) extends TradingDetailsController
+object TradingDetailsController extends TradingDetailsController {
+  val authConnector = FrontendAuthConnector
+  val tradingDetailsService = TradingDetailsService
+  override val metricsService: MetricsService = MetricsService
+  val companyRegistrationConnector = CompanyRegistrationConnector
+  val keystoreConnector = KeystoreConnector
+  override val appConfig =  FrontendAppConfig
+}
 
-trait TradingDetailsController extends FrontendController with AuthFunction with ControllerErrorHandler with SessionRegistration with I18nSupport {
-  implicit val appConfig: FrontendAppConfig
+trait TradingDetailsController extends FrontendController with AuthFunction with ControllerErrorHandler with SessionRegistration with MessagesSupport {
+  implicit val appConfig: AppConfig
 
   val tradingDetailsService : TradingDetailsService
   val metricsService: MetricsService

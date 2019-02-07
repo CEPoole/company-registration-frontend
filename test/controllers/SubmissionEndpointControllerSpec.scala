@@ -17,12 +17,12 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
+import config.FrontendAuthConnector
+import connectors.S4LConnector
 import controllers.test.SubmissionEndpointController
 import fixtures.SCRSFixtures
 import helpers.SCRSSpec
 import models._
-import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,13 +38,22 @@ class SubmissionEndpointControllerSpec extends SCRSSpec with SCRSFixtures with W
     val controller = new SubmissionEndpointController {
       val authConnector = mockAuthConnector
       val s4LConnector = mockS4LConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
     implicit val hc = HeaderCarrier()
+
   }
 
   val internalID = Some("internalID")
+
+  "SubmissionEndpointController" should {
+    "use the correct AuthConnector" in {
+      SubmissionEndpointController.authConnector shouldBe FrontendAuthConnector
+    }
+    "use the correct S4LConnector" in {
+      SubmissionEndpointController.s4LConnector shouldBe S4LConnector
+    }
+  }
 
   "getAllS4LEntries" should {
     "Return a 200" in new Setup {

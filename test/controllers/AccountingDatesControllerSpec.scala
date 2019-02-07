@@ -17,13 +17,11 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import controllers.reg.AccountingDatesController
 import fixtures.{AccountingDatesFixture, AccountingDetailsFixture, LoginFixture}
 import helpers.SCRSSpec
 import mocks.MetricServiceMock
 import models.{AccountingDetailsBadRequestResponse, AccountingDetailsNotFoundResponse}
-import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -42,11 +40,10 @@ class AccountingDatesControllerSpec extends SCRSSpec with WithFakeApplication wi
       override val accountingService = mockAccountingService
       override val authConnector = mockAuthConnector
       override val metricsService: MetricsService = MetricServiceMock
-      override val timeService: TimeService = fakeApplication.injector.instanceOf[TimeService]
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val timeService: TimeService = mock[TimeService]
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val keystoreConnector= mockKeystoreConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
   }
 

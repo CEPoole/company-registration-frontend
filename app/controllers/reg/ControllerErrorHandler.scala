@@ -16,13 +16,13 @@
 
 package controllers.reg
 
-import config.FrontendAppConfig
+import config.AppConfig
 import play.api.i18n.Messages
 import play.api.mvc.Request
 
 trait ControllerErrorHandler {
 
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   def defaultErrorPage(implicit request: Request[_], message: Messages) = views.html.error_template(
     Messages("global.error.title"),

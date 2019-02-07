@@ -17,7 +17,6 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import connectors.BusinessRegistrationConnector
 import controllers.reg.PPOBController
 import fixtures.PPOBFixture
@@ -27,16 +26,14 @@ import models.handoff._
 import org.mockito.Matchers
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.{AddressLookupFrontendService, NavModelNotFoundException}
+import services.AddressLookupFrontendService
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.test.WithFakeApplication
-import utils.JweCommon
 
 import scala.concurrent.Future
 
@@ -54,14 +51,13 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
       override val s4LConnector = mockS4LConnector
       override val addressLookupService = mockAddressLookupService
       override val keystoreConnector = mockKeystoreConnector
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val pPOBService = mockPPOBService
       override val handOffService = mockHandOffService
+      override val navModelMongo = mockNavModelRepoObj
       override val businessRegConnector = mockBusinessRegConnector
       override val addressLookupFrontendService = mockAddressLookupFrontendService
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val jwe: JweCommon = mockJweCommon
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
 
     def mockCheckStatus(ret:Option[String] = Some(regId)) = {
@@ -79,8 +75,9 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
 
     "return a 303 an redirect back to post sign in when navmodel not found thrown" in new Setup {
       mockKeystoreFetchAndGet("registrationID", Some("12345"))
-      when(mockHandOffService.fetchNavModel(Matchers.any[Boolean])(Matchers.any())).thenReturn(Future.failed[HandOffNavModel](new NavModelNotFoundException))
-
+      mockGetNavModel(None)
+      when(mockKeystoreConnector.fetchAndGet[HandOffNavModel](Matchers.eq("HandOffNavigation"))(Matchers.any(), Matchers.any()))
+        .thenReturn(Future.successful(None))
       showWithAuthorisedUserRetrieval(controller.back, extID) {
         result =>
           status(result) shouldBe SEE_OTHER
@@ -99,10 +96,12 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
           "2" -> NavLinks("testForward","testReverse")
         ))
       )
-      when(mockJweCommon.encrypt[BackHandoff](Matchers.any[BackHandoff])(Matchers.any[Writes[BackHandoff]])).thenReturn(None)
 
       mockKeystoreFetchAndGet("registrationID", Some("12345"))
-      when(mockHandOffService.fetchNavModel(Matchers.any[Boolean])(Matchers.any())).thenReturn(Future.successful(handOffNavModelData))
+
+      when(mockKeystoreConnector.fetchAndGet[HandOffNavModel](Matchers.eq("HandOffNavigation"))(Matchers.any(), Matchers.any()))
+        .thenReturn(Future.successful(Some(navModel)))
+      mockGetNavModel(None)
       when(mockHandOffService.buildBackHandOff(Matchers.any())(Matchers.any()))
         .thenReturn(Future.successful(BackHandoff("ext-xxxx-xxxx", "12345", Json.obj(), Json.obj(), Json.obj())))
 
@@ -112,6 +111,9 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
       }
     }
   }
+
+
+
 
   "show" should {
 
@@ -206,7 +208,9 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
     }
   }
 
+
   "saveALFAddress" should {
+
     val validCompanyDetails = CompanyDetails("TestLTD", validCHROAddress, PPOB("RO", None), "UK")
 
     "return a PPOBChoice with a value of PPOB if the supplied ppob option is defined" in new Setup {

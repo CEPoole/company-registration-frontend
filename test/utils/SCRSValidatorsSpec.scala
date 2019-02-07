@@ -16,7 +16,7 @@
 
 package utils
 
-import forms.AccountingDatesFormT
+import forms.AccountingDatesForm
 import org.joda.time.{DateTime, LocalDate}
 import services.{BankHolidays, TimeService}
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
@@ -25,10 +25,9 @@ import uk.gov.hmrc.time.workingdays.BankHolidaySet
 class SCRSValidatorsSpec extends UnitSpec with WithFakeApplication {
 
   class Setup(newnow : LocalDate = LocalDate.now(), dateTime : DateTime = DateTime.now()) {
-    val testAccDatesForm = new AccountingDatesFormT {
-      override lazy val bHS = BankHolidays.bankHolidaySet
+    val testAccDatesForm = new AccountingDatesForm {
       override val timeService: TimeService = new TimeService {
-        override implicit val bHS: BankHolidaySet = BankHolidays.bankHolidaySet
+        override val bHS: BankHolidaySet = BankHolidays.bankHolidaySet
         override val dayEndHour: Int = 14
         override def currentDateTime: DateTime = dateTime
         override def currentLocalDate: LocalDate = newnow

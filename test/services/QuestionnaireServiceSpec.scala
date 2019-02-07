@@ -60,4 +60,5 @@ class QuestionnaireServiceSpec extends UnitSpec with MockitoSugar {
       await(service.sendAuditEventOnSuccessfulSubmission(maximum)(hc, FakeRequest())) shouldBe expected
     }
   }
+
 }

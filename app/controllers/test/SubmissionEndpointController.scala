@@ -16,29 +16,27 @@
 
 package controllers.test
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector}
 import connectors.S4LConnector
 import controllers.auth.AuthFunction
 import forms.SubmissionForm
 import models.SubmissionModel
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.auth.core.retrieve.Retrievals
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.MessagesSupport
 import views.html.reg.SubmissionEndpoint
 
-class SubmissionEndpointControllerImpl @Inject()(val authConnector: PlayAuthConnector,
-                                                 val s4LConnector: S4LConnector,
-                                                 val appConfig: FrontendAppConfig,
-                                                 val messagesApi: MessagesApi) extends SubmissionEndpointController
+object SubmissionEndpointController extends SubmissionEndpointController{
+  val authConnector = FrontendAuthConnector
+  val s4LConnector = S4LConnector
+  override val appConfig =  FrontendAppConfig
+}
 
-trait SubmissionEndpointController extends FrontendController with AuthFunction with I18nSupport {
+trait SubmissionEndpointController extends FrontendController with AuthFunction with MessagesSupport {
   val s4LConnector: S4LConnector
 
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   val getAllS4LEntries: Action[AnyContent] = Action.async { implicit request =>
     ctAuthorisedOptStr(Retrievals.internalId) { internalID =>

@@ -17,7 +17,6 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import controllers.reg.ConfirmationController
 import fixtures.CompanyDetailsFixture
 import helpers.SCRSSpec
@@ -45,11 +44,11 @@ class ConfirmationControllerSpec extends SCRSSpec with CompanyDetailsFixture wit
   class Setup {
     val controller = new ConfirmationController {
       override val authConnector = mockAuthConnector
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val keystoreConnector = mockKeystoreConnector
       override val deskproService = mockDeskproService
       implicit val messagesApi: MessagesApi = fakeApplication.injector.instanceOf[MessagesApi]
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
+      override val appConfig = mockAppConfig
     }
   }
 
@@ -140,17 +139,6 @@ class ConfirmationControllerSpec extends SCRSSpec with CompanyDetailsFixture wit
         result =>
           status(result) shouldBe SEE_OTHER
           redirectLocation(result) shouldBe Some("/register-your-company/company-registration-overview")
-      }
-    }
-  }
-
-  "resubmitPage" should {
-    "Return a 200" in new Setup {
-
-      submitWithAuthorisedUser(controller.resubmitPage, FakeRequest().withFormUrlEncodedBody(Nil: _*)) {
-        result =>
-          status(result) shouldBe OK
-          contentAsString(result) should include(Messages("errorPages.retrySubmission.p2"))
       }
     }
   }

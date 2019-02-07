@@ -16,27 +16,29 @@
 
 package connectors
 
-import javax.inject.Inject
-
-import config.{FrontendAppConfig, WSHttp}
+import config.WSHttp
 import models.SendTemplatedEmailRequest
 import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.control.NoStackTrace
 
 private[connectors] class TemplateEmailErrorResponse(s: String) extends NoStackTrace
 
-class SendTemplatedEmailConnectorImpl @Inject()(appConfig: FrontendAppConfig, val wSHttp: WSHttp) extends SendTemplatedEmailConnector {
-  lazy val sendTemplatedEmailURL = appConfig.getConfString("email.sendAnEmailURL", throw new Exception("email.sendAnEmailURL not found"))
+object SendTemplatedEmailConnector extends SendTemplatedEmailConnector with ServicesConfig {
+  val http : CorePost = WSHttp
+  val sendTemplatedEmailURL = getConfString("email.sendAnEmailURL", throw new Exception("email.sendAnEmailURL not found"))
+
 }
 
 trait SendTemplatedEmailConnector extends HttpErrorFunctions {
-  val wSHttp : CorePost
+  val http : CorePost
   val sendTemplatedEmailURL : String
+
 
   def requestTemplatedEmail(templatedEmailRequest : SendTemplatedEmailRequest)(implicit hc : HeaderCarrier) : Future[Boolean] = {
     def errorMsg(status: String, ex: HttpException) = {
@@ -44,7 +46,7 @@ trait SendTemplatedEmailConnector extends HttpErrorFunctions {
       throw new TemplateEmailErrorResponse(status)
     }
 
-    wSHttp.POST[SendTemplatedEmailRequest, HttpResponse] (s"$sendTemplatedEmailURL", templatedEmailRequest) map { r =>
+    http.POST[SendTemplatedEmailRequest, HttpResponse] (s"$sendTemplatedEmailURL", templatedEmailRequest) map { r =>
       r.status match {
         case ACCEPTED => {
           Logger.debug("[SendTemplatedEmailConnector] [sendTemplatedEmail] request to email service was successful")
@@ -68,4 +70,5 @@ trait SendTemplatedEmailConnector extends HttpErrorFunctions {
       case 502 => throw new BadGatewayException("Email service returned an upstream error")
       case _ => handleResponse(http, url)(response)
     }
+
 }

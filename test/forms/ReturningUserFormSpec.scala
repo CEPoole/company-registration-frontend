@@ -32,4 +32,5 @@ class ReturningUserFormSpec extends UnitSpec with WithFakeApplication with PPOBF
       boundForm.errors.map(_.message) shouldBe List("error.returningUser.required")
     }
   }
+
 }

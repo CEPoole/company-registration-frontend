@@ -19,7 +19,6 @@ package controllers
 import java.util.UUID
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.reg.TradingDetailsController
 import fixtures.TradingDetailsFixtures
@@ -28,7 +27,6 @@ import mocks.MetricServiceMock
 import models.TradingDetails
 import org.mockito.Matchers
 import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
 import play.api.libs.json.Format
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -51,11 +49,10 @@ class TradingDetailsControllerSpec extends SCRSSpec with WithFakeApplication wit
     object TestController extends TradingDetailsController {
       val authConnector = mockAuthConnector
       val tradingDetailsService = mockTradingDetailsService
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val keystoreConnector= mockKeystoreConnector
       override val metricsService: MetricsService = MetricServiceMock
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
   }
 

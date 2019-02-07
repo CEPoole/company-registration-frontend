@@ -17,18 +17,16 @@
 package controllers.handoff
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import fixtures.LoginFixture
 import helpers.SCRSSpec
 import models.handoff.{NavLinks, SummaryPage1HandOffIncoming}
 import org.mockito.Matchers
 import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.WithFakeApplication
-import utils.{DecryptionError, JweCommon, PayloadError}
+import utils.{DecryptionError, Jwe, PayloadError}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -42,11 +40,9 @@ class CorporationTaxSummaryControllerSpec extends SCRSSpec with LoginFixture wit
       val authConnector = mockAuthConnector
       val keystoreConnector = mockKeystoreConnector
       val handBackService = mockHandBackService
-      val compRegConnector = mockCompanyRegistrationConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      val companyRegistrationConnector = mockCompanyRegistrationConnector
+      override val appConfig = mockAppConfig
     }
-    val jweInstance = () => fakeApplication.injector.instanceOf[JweCommon]
   }
 
   "Sending a GET to the HandBackController summary1HandBack" should {
@@ -60,7 +56,7 @@ class CorporationTaxSummaryControllerSpec extends SCRSSpec with LoginFixture wit
     )
 
     "return a SEE_OTHER if submitting without authorisation" in new Setup {
-      val encryptedPayload: Option[String] = jweInstance().encrypt[SummaryPage1HandOffIncoming](handBackPayload)
+      val encryptedPayload: Option[String] = Jwe.encrypt[SummaryPage1HandOffIncoming](handBackPayload)
 
       showWithUnauthorisedUser(TestController.corporationTaxSummary(encryptedPayload.get)) {
         result =>
@@ -84,7 +80,7 @@ class CorporationTaxSummaryControllerSpec extends SCRSSpec with LoginFixture wit
 
     "return a BAD_REQUEST if a payload error is returned from hand back service during decryption" in new Setup {
       mockKeystoreFetchAndGet("registrationID", Some("1"))
-      val encryptedPayload = jweInstance().encrypt[SummaryPage1HandOffIncoming](handBackPayload).get
+      val encryptedPayload = Jwe.encrypt[SummaryPage1HandOffIncoming](handBackPayload).get
 
       when(mockHandBackService.processSummaryPage1HandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))
         .thenReturn(Future.successful(Failure(PayloadError)))
@@ -98,7 +94,7 @@ class CorporationTaxSummaryControllerSpec extends SCRSSpec with LoginFixture wit
 
     "return a SEE_OTHER if submitting with request data and with authorisation" in new Setup {
       mockKeystoreFetchAndGet("registrationID", Some("1"))
-      val encryptedPayload = jweInstance().encrypt[SummaryPage1HandOffIncoming](handBackPayload).get
+      val encryptedPayload = Jwe.encrypt[SummaryPage1HandOffIncoming](handBackPayload).get
 
       when(mockHandBackService.processSummaryPage1HandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))
         .thenReturn(Future.successful(Success(handBackPayload)))
@@ -112,7 +108,7 @@ class CorporationTaxSummaryControllerSpec extends SCRSSpec with LoginFixture wit
     }
     "return a 303 when the user is authorised and the query string contains requestData but keystore has expired" in new Setup {
       mockKeystoreFetchAndGet("registrationID", None)
-      val encryptedPayload = jweInstance().encrypt[SummaryPage1HandOffIncoming](handBackPayload).get
+      val encryptedPayload = Jwe.encrypt[SummaryPage1HandOffIncoming](handBackPayload).get
 
       when(mockHandBackService.processSummaryPage1HandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))
         .thenReturn(Future.successful(Success(handBackPayload)))

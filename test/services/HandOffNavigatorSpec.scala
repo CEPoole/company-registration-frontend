@@ -16,9 +16,7 @@
 
 package services
 
-import config.FrontendAppConfig
 import connectors.KeystoreConnector
-import helpers.SCRSSpec
 import mocks.NavModelRepoMock
 import models.handoff.{HandOffNavModel, NavLinks, Receiver, Sender}
 import org.mockito.Matchers
@@ -28,39 +26,39 @@ import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.cache.client.CacheMap
-import uk.gov.hmrc.play.test.WithFakeApplication
-import utils.{BooleanFeatureSwitch, SCRSFeatureSwitches}
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 import scala.concurrent.Future
 
-class HandOffNavigatorSpec extends  SCRSSpec with MockitoSugar with WithFakeApplication with BeforeAndAfterEach with NavModelRepoMock{
+class HandOffNavigatorSpec extends UnitSpec with MockitoSugar with WithFakeApplication with BeforeAndAfterEach with NavModelRepoMock{
 
   val mockNavModelRepoObj = mockNavModelRepo
   val mockKeyStoreConnector = mock[KeystoreConnector]
 
+  override def beforeEach() {
+    System.clearProperty("feature.test")
+    System.clearProperty("feature.cohoFirstHandOff")
+    System.clearProperty("feature.businessActivitiesHandOff")
+  }
 
   class Setup(existsInKeystore:Boolean = true) {
 
-    val navigator = new HandOffNavigator{
+    val navigator = new HandOffNavigator with ServicesConfig{
       override val keystoreConnector = mockKeyStoreConnector
       override val navModelMongo = mockNavModelRepoObj
       override def fetchRegistrationID(implicit hc:HeaderCarrier) = Future.successful("foo")
-
-      override val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-
-      override val scrsFeatureSwitches: SCRSFeatureSwitches = mockSCRSFeatureSwitches
-
     }
   }
   class SetupWithMongoRepo {
-    val navigator = new HandOffNavigator {
+    val navigator = new HandOffNavigator with ServicesConfig{
       override val keystoreConnector = mockKeyStoreConnector
       override val navModelMongo = mockNavModelRepoObj
       override def fetchRegistrationID(implicit hc:HeaderCarrier) = Future.successful("foo")
-      override val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val scrsFeatureSwitches: SCRSFeatureSwitches = mockSCRSFeatureSwitches
     }
   }
+
+  implicit val hc = HeaderCarrier()
 
   val initNavModel = HandOffNavModel(
     Sender(Map(
@@ -119,15 +117,12 @@ class HandOffNavigatorSpec extends  SCRSSpec with MockitoSugar with WithFakeAppl
     }
 
     "return a new initialised nav model when a nav model cannot be found in keystore OR Mongo" in new SetupWithMongoRepo {
-      when(mockSCRSFeatureSwitches.legacyEnv).thenReturn(BooleanFeatureSwitch("",true))
-      when(mockSCRSFeatureSwitches.cohoFirstHandOff).thenReturn(BooleanFeatureSwitch("",false))
       when(mockKeyStoreConnector.fetchAndGet[HandOffNavModel](Matchers.any())(Matchers.any(), Matchers.any()))
         .thenReturn(Future.successful(None))
       mockGetNavModel(handOffNavModel = None)
       mockInsertNavModel()
 
-     val res = await(navigator.fetchNavModel(canCreate = true))
-      res shouldBe initNavModel
+      await(navigator.fetchNavModel(canCreate = true)) shouldBe initNavModel
     }
   }
 
@@ -177,18 +172,16 @@ class HandOffNavigatorSpec extends  SCRSSpec with MockitoSugar with WithFakeAppl
 
   "firstHandOffUrl" should {
     "return a stub url when the feature is disabled" in new Setup {
-      when(mockSCRSFeatureSwitches.cohoFirstHandOff).thenReturn(BooleanFeatureSwitch("",false))
-
+      System.setProperty("feature.cohoFirstHandOff","false")
       navigator.firstHandoffURL shouldBe "http://localhost:9986/incorporation-frontend-stubs/basic-company-details"
     }
 
     "return a coho url when the feature is enabled" in new Setup{
-      when(mockSCRSFeatureSwitches.cohoFirstHandOff).thenReturn(BooleanFeatureSwitch("",true))
+      System.setProperty("feature.cohoFirstHandOff","true")
       navigator.firstHandoffURL shouldBe "https://ewfgonzo.companieshouse.gov.uk/incorporation"
     }
 
     "return a stub url when the feature doesn't exist" in new Setup{
-      when(mockSCRSFeatureSwitches.cohoFirstHandOff).thenReturn(BooleanFeatureSwitch("",false))
       navigator.firstHandoffURL shouldBe "http://localhost:9986/incorporation-frontend-stubs/basic-company-details"
     }
   }

@@ -50,7 +50,6 @@ case class Email(
 
 object Email {
   val GG = "GG"
-  val SCP = "SCP"
   implicit val reads = (
     (__ \ "address").read[String] and
     (__ \ "type").read[String] and

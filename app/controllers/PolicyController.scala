@@ -16,24 +16,25 @@
 
 package controllers
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
-import play.api.i18n.{I18nSupport, MessagesApi}
+import config.{AppConfig, FrontendAppConfig}
 import play.api.mvc.Action
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.MessagesSupport
 import views.html.policies
 
 import scala.concurrent.Future
 
-class PolicyControllerImpl @Inject()(val appConfig: FrontendAppConfig,
-                                     val messagesApi: MessagesApi) extends PolicyController
+object PolicyController extends PolicyController {
+  override val appConfig =  FrontendAppConfig
+}
 
-trait PolicyController extends FrontendController with I18nSupport {
+trait PolicyController extends FrontendController with MessagesSupport {
 
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   def policyLinks = Action.async { implicit request =>
     Future.successful(Ok(policies()))
   }
+
 }
+

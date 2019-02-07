@@ -16,38 +16,35 @@
 
 package controllers.handoff
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector}
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.auth.AuthFunction
 import controllers.reg.ControllerErrorHandler
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent}
-import services.{HandBackService, HandOffService, NavModelNotFoundException}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import utils.{DecryptionError, PayloadError, SessionRegistration}
+import services.{HandBackService, HandOffService, HandOffServiceImpl, NavModelNotFoundException}
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.{DecryptionError, MessagesSupport, PayloadError, SessionRegistration}
 import views.html.{error_template, error_template_restart}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class BasicCompanyDetailsControllerImpl @Inject()(val authConnector: PlayAuthConnector,
-                                                  val keystoreConnector: KeystoreConnector,
-                                                  val handOffService: HandOffService,
-                                                  val appConfig: FrontendAppConfig,
-                                                  val compRegConnector: CompanyRegistrationConnector,
-                                                  val handBackService: HandBackService,
-                                                  val messagesApi: MessagesApi) extends BasicCompanyDetailsController
+object BasicCompanyDetailsController extends BasicCompanyDetailsController {
+  val authConnector = FrontendAuthConnector
+  val keystoreConnector = KeystoreConnector
+  val handOffService = HandOffServiceImpl
+  val handBackService = HandBackService
+  val companyRegistrationConnector = CompanyRegistrationConnector
+  override val appConfig =  FrontendAppConfig
+}
 
-trait BasicCompanyDetailsController extends FrontendController with AuthFunction with SessionRegistration with ControllerErrorHandler with I18nSupport {
+trait BasicCompanyDetailsController extends FrontendController with AuthFunction with SessionRegistration with ControllerErrorHandler with MessagesSupport {
 
   val handOffService : HandOffService
   val handBackService : HandBackService
-  val compRegConnector: CompanyRegistrationConnector
+  val companyRegistrationConnector: CompanyRegistrationConnector
 
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   //HO1
   val basicCompanyDetails: Action[AnyContent] = Action.async {
@@ -55,7 +52,7 @@ trait BasicCompanyDetailsController extends FrontendController with AuthFunction
       ctAuthorisedBasicCompanyDetails { basicAuth =>
         registered {
           regId =>
-            compRegConnector.retrieveEmail(regId).flatMap { emailBlock =>
+            companyRegistrationConnector.retrieveEmail(regId).flatMap { emailBlock =>
               emailBlock.fold(Future.successful(Redirect(controllers.reg.routes.SignInOutController.postSignIn()))) { email =>
                 handOffService.companyNamePayload(regId, email.address, basicAuth.name, basicAuth.externalId) map {
                   case Some((url, payload)) => Redirect(handOffService.buildHandOffUrl(url, payload))

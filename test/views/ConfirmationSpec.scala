@@ -40,7 +40,7 @@ class ConfirmationSpec extends SCRSSpec with CompanyDetailsFixture with WithFake
   class SetupPage {
     val controller = new ConfirmationController {
       override val authConnector = mockAuthConnector
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val keystoreConnector = mockKeystoreConnector
       override val deskproService = mockDeskproService
       implicit val messagesApi: MessagesApi = fakeApplication.injector.instanceOf[MessagesApi]

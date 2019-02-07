@@ -17,20 +17,19 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
+import connectors.KeystoreConnector
 import controllers.reg.RegistrationEmailConfirmationController
 import helpers.SCRSSpec
 import mocks.SCRSMocks
 import models.{ConfirmRegistrationEmailModel, RegistrationEmailModel}
 import org.jsoup.Jsoup
-import org.mockito.Mockito._
-import org.mockito.{ArgumentMatcher, Matchers}
-import play.api.i18n.MessagesApi
-import play.api.mvc.{AnyContent, Request, Result, Results}
+import org.mockito.{ArgumentCaptor, ArgumentMatcher, Matchers}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.WithFakeApplication
+import org.mockito.Mockito._
+import play.api.mvc.{AnyContent, Request, Result, Results}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -43,11 +42,10 @@ class RegistrationEmailConfirmationControllerSpec extends SCRSSpec with WithFake
       val emailVerificationService = mockEmailService
       val authConnector = mockAuthConnector
       override val keystoreConnector = mockKeystoreConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val appConfig = mockAppConfig
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       implicit val hc:HeaderCarrier = HeaderCarrier()
       implicit val fr= FakeRequest()
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
       def showLogicFun(f: Future[Result] = TestController.showLogic(HeaderCarrier(),FakeRequest())) = f
       def submitLogicFun(regID: String = "regid", r:Request[AnyContent]) = TestController.submitLogic(regID)(HeaderCarrier(),r)
     }

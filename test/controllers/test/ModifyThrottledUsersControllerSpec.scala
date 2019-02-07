@@ -37,7 +37,7 @@ class ModifyThrottledUsersControllerSpec extends UnitSpec with MockitoSugar {
   class Setup {
     val controller = new ModifyThrottledUsersController {
       val crUrl: String = "test.url"
-      val wSHttp: HttpGet = mockHttp
+      val http: HttpGet = mockHttp
     }
   }
 

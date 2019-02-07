@@ -16,13 +16,12 @@
 
 package services
 
-import javax.inject.Inject
-
 import address.client.{AddressRecord, RecordSet}
-import config.{FrontendAppConfig, WSHttp}
+import config.WSHttp
 import play.api.Logger
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.http.{CoreGet, HeaderCarrier, HttpReads}
+import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,27 +30,26 @@ sealed trait AddressLookupResponse
 case class AddressLookupSuccessResponse(addressList: RecordSet) extends AddressLookupResponse
 case class AddressLookupErrorResponse(cause: Exception) extends AddressLookupResponse
 
-class AddressLookupServiceImpl @Inject()(val appConfig: FrontendAppConfig,
-                                         val wSHttp: WSHttp) extends AddressLookupService {
-
-  override lazy val addressLookupUrl = appConfig.baseUrl("address-lookup")
+object AddressLookupService extends AddressLookupService with ServicesConfig {
+  override val http = WSHttp
+  override val addressLookupUrl = baseUrl("address-lookup")
 }
 
 trait AddressLookupService extends AddressConverter {
-  val wSHttp: CoreGet
+  val http: CoreGet
   val addressLookupUrl: String
 
   def lookup(postcode: String, optFilter: Option[String] = None)(implicit hc: HeaderCarrier): Future[AddressLookupResponse] = {
     val scrsHc = hc.withExtraHeaders("X-Hmrc-Origin" -> "SCRS")
     val trimmedPostcode = postcode.replaceAll(" ", "")
     val filter = checkFilter(optFilter)
-    val addressJson = wSHttp.GET[JsValue](s"$addressLookupUrl/uk/addresses?postcode=$trimmedPostcode$filter")(implicitly[HttpReads[JsValue]], scrsHc, implicitly)
+    val addressJson = http.GET[JsValue](s"$addressLookupUrl/uk/addresses?postcode=$trimmedPostcode$filter")(implicitly[HttpReads[JsValue]], scrsHc, implicitly)
     handleResponse(addressJson)
   }
 
   def lookup(uprn: String)(implicit hc: HeaderCarrier): Future[AddressRecord] = {
     val scrsHc = hc.withExtraHeaders("X-Hmrc-Origin" -> "SCRS")
-    wSHttp.GET[AddressRecord](s"$addressLookupUrl/v2/uk/addresses/$uprn")(implicitly[HttpReads[AddressRecord]], scrsHc, implicitly)
+    http.GET[AddressRecord](s"$addressLookupUrl/v2/uk/addresses/$uprn")(implicitly[HttpReads[AddressRecord]], scrsHc, implicitly)
   }
 
   private[services] def handleResponse(addressJson: Future[JsValue]): Future[AddressLookupResponse] = {

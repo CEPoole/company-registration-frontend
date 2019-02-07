@@ -18,13 +18,15 @@ package connectors
 
 import java.util.UUID
 
+import config.WSHttp
 import fixtures._
 import helpers.SCRSSpec
 import models._
 import models.connectors.ConfirmationReferences
 import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito._
+import play.api.http.Status._
 import play.api.libs.json.{JsObject, JsValue, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.test.WithFakeApplication
@@ -37,17 +39,19 @@ class CompanyRegistrationConnectorSpec extends SCRSSpec with CTDataFixture with 
   trait Setup {
     val connector = new CompanyRegistrationConnector {
       override val companyRegUrl = "testCompanyRegUrl"
-      override val wsHttp = mockWSHttp
+      override val http = mockWSHttp
     }
   }
 
   val regID = UUID.randomUUID.toString
 
   "CompanyRegistrationConnector" should {
-    "use the correct businessRegUrl" in new Setup {
-      connector.companyRegUrl shouldBe "testCompanyRegUrl"
+    "use the correct businessRegUrl" in {
+      CompanyRegistrationConnector.companyRegUrl shouldBe "http://localhost:9973"
     }
-
+    "use the correct http" in {
+      CompanyRegistrationConnector.http shouldBe WSHttp
+    }
   }
   "fetchCompanyName" should {
     "return company name" in new Setup{

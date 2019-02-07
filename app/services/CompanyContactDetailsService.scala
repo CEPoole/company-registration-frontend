@@ -16,27 +16,27 @@
 
 package services
 
-import javax.inject.Inject
-
 import audit.events.{ContactDetailsAuditEvent, ContactDetailsAuditEventDetail}
+import config.{FrontendAuditConnector, FrontendAuthConnector}
 import connectors._
 import models._
 import play.api.mvc.{AnyContent, Request}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import utils.SCRSExceptions
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class CompanyContactDetailsServiceImpl @Inject()(val businessRegConnector: BusinessRegistrationConnector,
-                                             val companyRegistrationConnector: CompanyRegistrationConnector,
-                                             val keystoreConnector: KeystoreConnector,
-                                             val authConnector: PlayAuthConnector,
-                                             val auditConnector: AuditConnector,
-                                             val platformAnalyticsConnector: PlatformAnalyticsConnector) extends CompanyContactDetailsService
+object CompanyContactDetailsService extends CompanyContactDetailsService {
+  val businessRegConnector = BusinessRegistrationConnector
+  val companyRegistrationConnector = CompanyRegistrationConnector
+  val keystoreConnector = KeystoreConnector
+  val authConnector = FrontendAuthConnector
+  val auditConnector = FrontendAuditConnector
+  val platformAnalyticsConnector = PlatformAnalyticsConnector
+}
 
 trait CompanyContactDetailsService extends CommonService with SCRSExceptions {
   val businessRegConnector: BusinessRegistrationConnector

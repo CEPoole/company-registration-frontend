@@ -16,33 +16,31 @@
 
 package controllers.reg
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig, FrontendAuthConnector}
 import connectors.KeystoreConnector
 import controllers.auth.AuthFunction
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent}
 import services.CommonService
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import utils.SCRSExceptions
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.{MessagesSupport, SCRSExceptions}
 import views.html.reg.LimitReached
 
 import scala.concurrent.Future
 
-class LimitReachedControllerImpl @Inject()(val authConnector: PlayAuthConnector,
-                                           val keystoreConnector: KeystoreConnector,
-                                           val appConfig: FrontendAppConfig,
-                                           val messagesApi: MessagesApi) extends LimitReachedController {
-
- lazy val cohoUrl = appConfig.getConfString("coho-service.web-incs", throw new Exception("Couldn't find Coho url"))
+object LimitReachedController extends LimitReachedController with ServicesConfig {
+  val authConnector = FrontendAuthConnector
+  //$COVERAGE-OFF$
+  val cohoUrl = getConfString("coho-service.web-incs", throw new Exception("Couldn't find Coho url"))
+  //$COVERAGE-ON$
+  val keystoreConnector = KeystoreConnector
+  override val appConfig =  FrontendAppConfig
 }
 
-trait LimitReachedController extends FrontendController with AuthFunction with CommonService with SCRSExceptions with I18nSupport {
+trait LimitReachedController extends FrontendController with AuthFunction with CommonService with SCRSExceptions with MessagesSupport {
   val cohoUrl: String
 
-  implicit val appConfig: FrontendAppConfig
+  implicit val appConfig: AppConfig
 
   val show: Action[AnyContent] = Action.async { implicit request =>
     ctAuthorised {

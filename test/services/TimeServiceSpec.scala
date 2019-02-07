@@ -23,15 +23,14 @@ import uk.gov.hmrc.time.workingdays.{BankHoliday, BankHolidaySet}
 
 class TimeServiceSpec extends UnitSpec with WithFakeApplication with MockitoSugar {
 
-  implicit val bHSTest: BankHolidaySet = BankHolidays.bankHolidaySet
-  val bhRandomDate = new BankHoliday(title="testBH", date=new LocalDate(2000, 10, 10))
-
-  def timeServiceMock(dateTime: DateTime = new DateTime(2017, 1, 2, 15, 0), dayEnd: Int = 14, bankHolidayDates : List[BankHoliday] = List(bhRandomDate)) = new TimeService {
+  def timeServiceMock(dateTime: DateTime, dayEnd: Int, bankHolidayDates : List[BankHoliday]) = new TimeService {
     override val dayEndHour: Int = dayEnd
     override def currentDateTime: DateTime = dateTime;
     override def currentLocalDate: LocalDate = currentDateTime.toLocalDate
     implicit val bHS: BankHolidaySet = BankHolidaySet("england-and-wales", bankHolidayDates)
   }
+
+  implicit val bHSTest: BankHolidaySet = TimeService.bHS
 
   val testDate = LocalDate.parse("2016-01-01")
 
@@ -129,13 +128,13 @@ class TimeServiceSpec extends UnitSpec with WithFakeApplication with MockitoSuga
 
     //Test the future dates
     "return a future date " in {
-      timeServiceMock().futureWorkingDate(LocalDate.parse("2016-12-13"), 60)(bHSTest) shouldBe "07 03 2017"
+      TimeService.futureWorkingDate(LocalDate.parse("2016-12-13"), 60)(bHSTest) shouldBe "07 03 2017"
     }
     "return a future date ignoring bank holidays" in {
-      timeServiceMock().futureWorkingDate(LocalDate.parse("2019-08-26"), 1)(bHSTest) shouldBe "27 08 2019"
+      TimeService.futureWorkingDate(LocalDate.parse("2019-08-26"), 1)(bHSTest) shouldBe "27 08 2019"
     }
     "return a future date ignoring bank holidays 2 working days in the future" in {
-      timeServiceMock().futureWorkingDate(LocalDate.parse("2019-12-24"), 2)(bHSTest) shouldBe "30 12 2019"
+      TimeService.futureWorkingDate(LocalDate.parse("2019-12-24"), 2)(bHSTest) shouldBe "30 12 2019"
     }
   }
 
@@ -144,13 +143,13 @@ class TimeServiceSpec extends UnitSpec with WithFakeApplication with MockitoSuga
     "return true when a leap year date is validated" in {
       val leapYearDate = "2016-02-29"
 
-      timeServiceMock().validate(leapYearDate) shouldBe true
+      TimeService.validate(leapYearDate) shouldBe true
     }
 
     "return false when a non-leap year date is validated" in {
       val leapYearDate = "2017-02-29"
 
-      timeServiceMock().validate(leapYearDate) shouldBe false
+      TimeService.validate(leapYearDate) shouldBe false
     }
   }
 
@@ -162,21 +161,21 @@ class TimeServiceSpec extends UnitSpec with WithFakeApplication with MockitoSuga
 
     "return a valid datetime" in {
       val expected = Some(DateTime.parse("2017-11-10T00:00:00.000Z"))
-      TimeHelper.toDateTime(Some(day), Some(month), Some(year)).get.getMillis shouldBe expected.get.getMillis
+      TimeService.toDateTime(Some(day), Some(month), Some(year)).get.getMillis shouldBe expected.get.getMillis
     }
 
     "return a None when empty dates are supplied" in {
-      TimeHelper.toDateTime(None, None, None) shouldBe None
+      TimeService.toDateTime(None, None, None) shouldBe None
     }
 
     "return None when any of the date fields supplied is empty" in {
-      TimeHelper.toDateTime(None, Some(month), Some(year)) shouldBe None
-      TimeHelper.toDateTime(Some(day), None, Some(year)) shouldBe None
-      TimeHelper.toDateTime(Some(day), Some(month), None) shouldBe None
+      TimeService.toDateTime(None, Some(month), Some(year)) shouldBe None
+      TimeService.toDateTime(Some(day), None, Some(year)) shouldBe None
+      TimeService.toDateTime(Some(day), Some(month), None) shouldBe None
     }
     "return a valid datetime on a day light savings date" in {
       val expected = Some(DateTime.parse("2020-10-22T00:00:00.000"))
-      TimeHelper.toDateTime(Some("22"), Some("10"), Some("2020")).get.getMillis shouldBe expected.get.getMillis
+      TimeService.toDateTime(Some("22"), Some("10"), Some("2020")).get.getMillis shouldBe expected.get.getMillis
     }
   }
 }

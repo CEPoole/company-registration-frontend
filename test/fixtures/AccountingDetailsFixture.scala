@@ -42,4 +42,5 @@ trait AccountingDetailsFixture {
 	lazy val accountingDetailsRequest = AccountingDetailsRequest(FUTURE_DATE, Some("2017-12-10"))
 
 	lazy val validAccountingResponse = AccountingDetailsSuccessResponse(AccountingDetails(FUTURE_DATE, Some("2020-06-10"), Links(Some(""))))
+
 }

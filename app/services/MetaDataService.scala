@@ -16,19 +16,19 @@
 
 package services
 
-import javax.inject.Inject
-
 import connectors.{BusinessRegistrationConnector, BusinessRegistrationSuccessResponse, KeystoreConnector}
 import models.{AboutYouChoice, AboutYouChoiceForm, BusinessRegistration}
 import play.api.Logger
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import utils.SCRSExceptions
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class MetaDataServiceImpl @Inject()(val businessRegConnector: BusinessRegistrationConnector,
-                                    val keystoreConnector: KeystoreConnector) extends MetaDataService
+object MetaDataService extends MetaDataService {
+  val businessRegConnector = BusinessRegistrationConnector
+  val keystoreConnector = KeystoreConnector
+}
 
 trait MetaDataService extends CommonService with SCRSExceptions {
 

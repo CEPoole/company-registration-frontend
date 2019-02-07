@@ -17,20 +17,21 @@
 package controllers.handoff
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
+import config.FrontendAuthConnector
+import connectors.KeystoreConnector
 import fixtures.PayloadFixture
 import helpers.SCRSSpec
 import models.Email
 import models.handoff.CompanyNameHandOffIncoming
 import org.mockito.Matchers
 import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
+import services.{HandBackService, HandOffServiceImpl}
 import uk.gov.hmrc.auth.core.retrieve.{Name, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.WithFakeApplication
-import utils.{DecryptionError, JweCommon, PayloadError}
+import utils.{DecryptionError, Jwe, PayloadError}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -43,11 +44,28 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
       val keystoreConnector = mockKeystoreConnector
       val handOffService = mockHandOffService
       val handBackService = mockHandBackService
-      override val compRegConnector = mockCompanyRegistrationConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
+      override val appConfig = mockAppConfig
+
     }
-    val jweInstance = () => fakeApplication.injector.instanceOf[JweCommon]
+  }
+
+  "BasicCompanyDetailsController" should {
+    "use the correct auth connector" in {
+      BasicCompanyDetailsController.authConnector shouldBe FrontendAuthConnector
+    }
+
+    "use the correct keystore connector" in {
+      BasicCompanyDetailsController.keystoreConnector shouldBe KeystoreConnector
+    }
+
+    "use the correct hand off service" in {
+      BasicCompanyDetailsController.handOffService shouldBe HandOffServiceImpl
+    }
+
+    "use the correct hand back service" in {
+      BasicCompanyDetailsController.handBackService shouldBe HandBackService
+    }
   }
 
   val authDetails = new ~(
@@ -82,7 +100,7 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
 
     "should pass the correct encrypted payload into the query string" in new Setup {
 
-      val encryptedPayload = jweInstance().encrypt[CompanyNameHandOffIncoming](validCompanyNameHandBack).get
+      val encryptedPayload = Jwe.encrypt[CompanyNameHandOffIncoming](validCompanyNameHandBack).get
 
       mockKeystoreFetchAndGet("registrationID", Some("1"))
       when(mockCompanyRegistrationConnector.retrieveEmail(Matchers.any())(Matchers.any())).thenReturn(Future.successful(Some(Email("foo","bar",true,true,true))))
@@ -97,7 +115,7 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
         result =>
           status(result) shouldBe SEE_OTHER
           val encryptedPayload = redirectLocation(result).get.split("request=")(1)
-          jweInstance().decrypt[CompanyNameHandOffIncoming](encryptedPayload) shouldBe Success(validCompanyNameHandBack)
+          Jwe.decrypt[CompanyNameHandOffIncoming](encryptedPayload) shouldBe Success(validCompanyNameHandBack)
       }
     }
 
@@ -135,7 +153,7 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
     )
 
     "return a 303 when hand back service decrypts the reverse hand off payload successfully" in new Setup {
-      val encryptedPayload = jweInstance().encrypt[JsValue](payload).get
+      val encryptedPayload = Jwe.encrypt[JsValue](payload).get
       mockKeystoreFetchAndGet("registrationID", Some("1"))
       when(mockHandBackService.processCompanyNameReverseHandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))
         .thenReturn(Future.successful(Success(payload)))
@@ -147,7 +165,7 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
     }
 
     "return a 303 when the user is authorised and the query string contains requestData but keystore has expired" in new Setup {
-      val encryptedPayload = jweInstance().encrypt[JsValue](payload).get
+      val encryptedPayload = Jwe.encrypt[JsValue](payload).get
       mockKeystoreFetchAndGet("registrationID", None)
       when(mockHandBackService.processCompanyNameReverseHandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))
         .thenReturn(Future.successful(Success(payload)))
@@ -161,7 +179,7 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
 
     "return a 400 when hand back service errors while decrypting the payload" in new Setup {
       mockKeystoreFetchAndGet("registrationID", Some("12345"))
-      val encryptedPayload = jweInstance().encrypt[JsValue](payload).get
+      val encryptedPayload = Jwe.encrypt[JsValue](payload).get
 
       when(mockHandBackService.processCompanyNameReverseHandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))
         .thenReturn(Future.successful(Failure(DecryptionError)))
@@ -173,7 +191,7 @@ class BasicCompanyDetailsControllerSpec extends SCRSSpec with PayloadFixture wit
     }
 
     "return a 400 when hand back service decrypts the payload successfully but the Json is malformed" in new Setup {
-      val encryptedPayload = jweInstance().encrypt[JsValue](payload).get
+      val encryptedPayload = Jwe.encrypt[JsValue](payload).get
       mockKeystoreFetchAndGet("registrationID", Some("12345"))
 
       when(mockHandBackService.processCompanyNameReverseHandBack(Matchers.eq(encryptedPayload))(Matchers.any[HeaderCarrier]))

@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,15 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.play.partials.CachedStaticHtmlPartialRetriever
+package config
 
-@(partialUrl: String, redirectUrl: String)(implicit request: Request[_], cachedStaticHtmlPartialRetriever: CachedStaticHtmlPartialRetriever,
-messages: Messages, appConfig: config.AppConfig)
+import uk.gov.hmrc.play.config.ServicesConfig
 
-@main_template(Messages("feedback.thankyou.title")) {
-    @cachedStaticHtmlPartialRetriever.getPartialContent(partialUrl)
-<div> <a id="back" href='@redirectUrl' role="button" tabindex="0" class="button">@Messages("common.button.back")</a> </div>
-<br>
+object FrontendConfig extends ServicesConfig {
+
+  lazy val self = getConfString("comp-reg-frontend.url", throw new Exception("Could not find config for comp-reg-frontend url"))
+  lazy val selfFull = getConfString("comp-reg-frontend.fullurl", self)
+  lazy val selfFullLegacy = getConfString("comp-reg-frontend.legacyfullurl", selfFull)
+
+  lazy val incorporationInfoUrl = baseUrl("incorp-info")
 }

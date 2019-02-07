@@ -16,24 +16,25 @@
 
 package connectors
 
-import javax.inject.Inject
-
-import config.{FrontendAppConfig, WSHttp}
+import config.WSHttp
 import play.api.Logger
 import play.api.libs.json.JsValue
 import services.MetricsService
 import uk.gov.hmrc.http.{CoreGet, HeaderCarrier, HttpException, HttpResponse}
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class IncorpInfoConnectorImpl @Inject()(appConfig: FrontendAppConfig, val wSHttp: WSHttp, val metricsService: MetricsService) extends IncorpInfoConnector {
+object IncorpInfoConnector extends IncorpInfoConnector with ServicesConfig {
+  val http : CoreGet = WSHttp
+  val incorpInfoUrl = s"${baseUrl("incorp-info")}/incorporation-information"
 
- lazy val incorpInfoUrl = s"${appConfig.baseUrl("incorp-info")}/incorporation-information"
+  override val metricsService = MetricsService
 }
 
 trait IncorpInfoConnector {
-  val wSHttp: CoreGet
+  val http: CoreGet
   val incorpInfoUrl: String
 
   val metricsService: MetricsService
@@ -44,7 +45,7 @@ trait IncorpInfoConnector {
 
   def getCompanyProfile(transId: String)(implicit hc: HeaderCarrier): Future[JsValue] = {
     metricsService.processDataResponseWithMetrics[JsValue](metricsService.retrieveCompanyProfileIITimer.time()) {
-      wSHttp.GET[JsValue](s"$incorpInfoUrl/$transId/company-profile") recover handleError(transId, "getCompanyProfile")
+      http.GET[JsValue](s"$incorpInfoUrl/$transId/company-profile") recover handleError(transId, "getCompanyProfile")
     }
   }
 
@@ -60,16 +61,17 @@ trait IncorpInfoConnector {
   def injectTestIncorporationUpdate(transId: String, isSuccess: Boolean)(implicit hc: HeaderCarrier): Future[Boolean] = {
     val queryString = s"txId=$transId&date=2018-1-1${if(isSuccess) "&crn=12345678" else ""}&success=$isSuccess"
 
-    wSHttp.GET[HttpResponse](s"$incorpInfoUrl/test-only/add-incorp-update/?$queryString") map (_ => true) recover { case _ =>
+    http.GET[HttpResponse](s"$incorpInfoUrl/test-only/add-incorp-update/?$queryString") map (_ => true) recover { case _ =>
         Logger.error(s"[IncorpInfoConnector] [injectTestIncorporationUpdate] Failed to inject a test incorporation update into II for $transId")
         false
     }
   }
 
   def manuallyTriggerIncorporationUpdate(implicit hc:HeaderCarrier): Future[Boolean] = {
-    wSHttp.GET[HttpResponse](s"$incorpInfoUrl/test-only/manual-trigger/fireSubs") map (_ => true) recover { case _ =>
+    http.GET[HttpResponse](s"$incorpInfoUrl/test-only/manual-trigger/fireSubs") map (_ => true) recover { case _ =>
         Logger.error(s"[IncorpInfoConnector] [manuallyTriggerIncorporationUpdate] Failed to trigger subscription processing on II")
         false
     }
   }
+
 }

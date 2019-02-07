@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,15 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.play.partials.CachedStaticHtmlPartialRetriever
+package helpers
 
-@(partialUrl: String, redirectUrl: String)(implicit request: Request[_], cachedStaticHtmlPartialRetriever: CachedStaticHtmlPartialRetriever,
-messages: Messages, appConfig: config.AppConfig)
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.frontend.auth.connectors.domain.{Accounts, Authority, ConfidenceLevel, CredentialStrength}
 
-@main_template(Messages("feedback.thankyou.title")) {
-    @cachedStaticHtmlPartialRetriever.getPartialContent(partialUrl)
-<div> <a id="back" href='@redirectUrl' role="button" tabindex="0" class="button">@Messages("common.button.back")</a> </div>
-<br>
+trait AuthHelpers {
+
+  def buildAuthContext: AuthContext = AuthContext(createUserAuthority("testUserId"))
+
+  def createUserAuthority(userId: String, accounts: Accounts = Accounts()): Authority = {
+    Authority(userId, accounts, None, None, CredentialStrength.Weak, ConfidenceLevel.L50, None, Some("testEnrolmentUri"), None, "")
+  }
 }

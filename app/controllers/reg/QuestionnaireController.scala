@@ -16,26 +16,24 @@
 
 package controllers.reg
 
-import javax.inject.Inject
-
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig}
 import forms.QuestionnaireForm
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
 import services.{MetricsService, QuestionnaireService}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import utils.MessagesSupport
 import views.html.reg.Questionnaire
 
 import scala.concurrent.Future
 
- class QuestionnaireControllerImpl @Inject()(val metricsService: MetricsService,
-                                             val qService:QuestionnaireService,
-                                             val appConfig: FrontendAppConfig,
-                                             val messagesApi: MessagesApi) extends QuestionnaireController
+object QuestionnaireController extends QuestionnaireController {
+  val metricsService = MetricsService
+  val qService = QuestionnaireService
+  override val appConfig =  FrontendAppConfig
+}
 
-trait QuestionnaireController extends FrontendController with I18nSupport {
-  implicit val appConfig: FrontendAppConfig
-  lazy val gHost = appConfig.govHostUrl
+trait QuestionnaireController extends FrontendController with MessagesSupport {
+  implicit val appConfig: AppConfig
   val  metricsService : MetricsService
   val qService: QuestionnaireService
   val show = Action.async {
@@ -51,7 +49,7 @@ trait QuestionnaireController extends FrontendController with I18nSupport {
         success => {
           metricsService.numberOfQuestionnairesSubmitted.inc()
           qService.sendAuditEventOnSuccessfulSubmission(success)
-          Future.successful(Redirect(gHost))
+          Future.successful(Redirect(appConfig.govHostUrl))
         }
       )
   }

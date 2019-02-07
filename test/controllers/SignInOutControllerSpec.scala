@@ -19,7 +19,6 @@ package controllers
 import java.time.LocalDate
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import connectors._
 import controllers.reg.SignInOutController
 import fixtures._
@@ -32,7 +31,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentType, _}
-import services.{EnrolmentsService, VerifiedEmail}
+import services.{EmailVerificationService, EnrolmentsService, VerifiedEmail}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, ~}
 import uk.gov.hmrc.auth.core.{AffinityGroup, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -61,7 +60,7 @@ class SignInOutControllerSpec extends SCRSSpec
       override val metrics = MetricServiceMock
       override val corsRenewHost = corsHost
       val cRFEBaseUrl = "test-base-url"
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
+      override val appConfig = mockAppConfig
     }
   }
 
@@ -399,7 +398,7 @@ class SignInOutControllerSpec extends SCRSSpec
       showWithAuthorisedUser(controller.renewSession()) { a =>
         status(a) shouldBe 200
         contentType(a) shouldBe Some("image/jpeg")
-        await(a).header.headers.toString().contains("""renewSession.jpg""") shouldBe true
+        await(a.body.dataStream.toString).contains("""renewSession.jpg""")  shouldBe true
         header("Access-Control-Allow-Origin", a) shouldBe None
         header("Access-Control-Allow-Credentials", a) shouldBe None
       }
@@ -419,7 +418,9 @@ class SignInOutControllerSpec extends SCRSSpec
 
   "destroySession" should {
     "return redirect to timeout show and get rid of headers" in new Setup {
+
       val fr = FakeRequest().withHeaders(("playFoo","no more"))
+
       val res = await(controller.destroySession()(fr))
       status(res) shouldBe 303
       headers(res).contains("playFoo") shouldBe false

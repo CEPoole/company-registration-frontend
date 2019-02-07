@@ -42,7 +42,8 @@ class VatThresholdConnectorSpec extends SCRSSpec with UnitSpec with WithFakeAppl
     val connector = new VatThresholdConnector {
     override val serviceBaseUrl = baseUrl
     override val serviceUri = baseUri
-      override val wSHttp = mockWSHttp
+
+      override val http = mockWSHttp
       val url = s"${serviceBaseUrl}/${serviceUri}/threshold"
     }
     val thresholdAmount = "150000"

@@ -17,10 +17,10 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
+import config.FrontendAuthConnector
+import connectors.KeystoreConnector
 import controllers.reg.LimitReachedController
 import helpers.SCRSSpec
-import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
@@ -28,19 +28,25 @@ import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 class LimitReachedControllerSpec extends UnitSpec with WithFakeApplication with SCRSSpec with AuthBuilder {
 
 
+
   class Setup {
     val controller = new LimitReachedController {
       val cohoUrl: String = "testGGUrl"
       val authConnector = mockAuthConnector
       val keystoreConnector = mockKeystoreConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
   }
 
   "LimitReachedController" should {
-    "use the correct coho Url" in new Setup {
-      controller.cohoUrl shouldBe "testGGUrl"
+    "use the correct coho Url" in {
+      LimitReachedController.cohoUrl shouldBe "http://resources.companieshouse.gov.uk/promo/webincs"
+    }
+    "use the correct auth connector" in {
+      LimitReachedController.authConnector shouldBe FrontendAuthConnector
+    }
+    "use the correct keystore connector" in {
+      LimitReachedController.keystoreConnector shouldBe KeystoreConnector
     }
   }
 

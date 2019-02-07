@@ -17,10 +17,12 @@
 package forms
 
 import models.{EmptyStringValidator, RegistrationEmailModel}
+import play.api.data.{FieldMapping, Form, Mapping}
 import play.api.data.Forms._
-import play.api.data.{Form, Mapping}
 import uk.gov.voa.play.form.ConditionalMappings._
 import utils.SCRSValidators._
+import play.api.data.format.Formats._
+import play.api.data.validation.Constraint
 
 
 object RegistrationEmailForm extends  EmptyStringValidator {

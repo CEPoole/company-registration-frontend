@@ -20,7 +20,6 @@ import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlMatching}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import config.FrontendAppConfig
 import itutil.{FakeAppConfig, IntegrationSpecBase, LoginStub, WiremockHelper}
 import models.RegistrationConfirmationPayload
 import models.handoff.{HandOffNavModel, NavLinks, Receiver, Sender}
@@ -30,7 +29,7 @@ import play.api.test.FakeApplication
 import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories.NavModelRepo
 import uk.gov.hmrc.mongo.MongoSpecSupport
-import utils.{Jwe, JweCommon}
+import utils.Jwe
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -45,10 +44,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
 
   class Setup {
     val rc = app.injector.instanceOf[ReactiveMongoComponent]
-    val repo = new NavModelRepo {
-      override val mongo: ReactiveMongoComponent = rc
-      override val appConfig: FrontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
-    }
+    val repo = new NavModelRepo(rc)
     await(repo.repository.ensureIndexes)
   }
   def confirmationEncryptedRequest(encrypted : String) = s"/registration-confirmation?request=$encrypted"
@@ -138,7 +134,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
   "HO5-1" should {
 
     val transID = "1551552"
-    lazy val encryptedForwardPayload = app.injector.instanceOf[JweCommon].encrypt(RegistrationConfirmationPayload(
+    lazy val encryptedForwardPayload = Jwe.encrypt(RegistrationConfirmationPayload(
       userId,
       "journeyid",
       transID,
@@ -179,7 +175,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
 
       val response = await(fResponse)
       val encryptedHandOffString  = response.header(HeaderNames.LOCATION).get.split("request=").takeRight(1)(0)
-      val decryptedHandoffJson  = app.injector.instanceOf[JweCommon].decrypt[JsObject](encryptedHandOffString).get
+      val decryptedHandoffJson  = Jwe.decrypt[JsObject](encryptedHandOffString).get
 
 
       response.status shouldBe 303
@@ -196,7 +192,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
           |}
         """.stripMargin))
 
-      val encryptedForwardWithChPayload = app.injector.instanceOf[JweCommon].encrypt(RegistrationConfirmationPayload(
+      val encryptedForwardWithChPayload = Jwe.encrypt(RegistrationConfirmationPayload(
         userId,
         "journeyid",
         transID,
@@ -229,7 +225,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
 
       val response = await(fResponse)
       val encryptedHandOffString  = response.header(HeaderNames.LOCATION).get.split("request=").takeRight(1)(0)
-      val decryptedHandoffJson  = app.injector.instanceOf[JweCommon].decrypt[JsObject](encryptedHandOffString).get
+      val decryptedHandoffJson  = Jwe.decrypt[JsObject](encryptedHandOffString).get
 
       response.status shouldBe 303
       response.header(HeaderNames.LOCATION).get should include("/link-to-before-you-pay-coho")
@@ -266,7 +262,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
 
       val response = await(fResponse)
       val encryptedHandOffString  = response.header(HeaderNames.LOCATION).get.split("request=").takeRight(1)(0)
-      val decryptedHandoffJson  = app.injector.instanceOf[JweCommon].decrypt[JsObject](encryptedHandOffString).get
+      val decryptedHandoffJson  = Jwe.decrypt[JsObject](encryptedHandOffString).get
 
       response.status shouldBe 303
       response.header(HeaderNames.LOCATION).get should include("/link-to-before-you-pay-coho")
@@ -303,7 +299,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
 
       val response = await(fResponse)
       val encryptedHandOffString  = response.header(HeaderNames.LOCATION).get.split("request=").takeRight(1)(0)
-      val decryptedHandoffJson  = app.injector.instanceOf[JweCommon].decrypt[JsObject](encryptedHandOffString).get
+      val decryptedHandoffJson  = Jwe.decrypt[JsObject](encryptedHandOffString).get
 
       response.status shouldBe 303
       response.header(HeaderNames.LOCATION).get should include("/link-to-before-you-pay-coho")
@@ -317,7 +313,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
     val paymentRef = "TEST-PAYMENTREF"
     val paymentAmount = "12"
 
-    lazy val encryptedPayload = app.injector.instanceOf[JweCommon].encrypt(RegistrationConfirmationPayload(
+    lazy val encryptedPayload = Jwe.encrypt(RegistrationConfirmationPayload(
       userId,
       "journeyid",
       transID,
@@ -384,7 +380,7 @@ class RegistrationConfirmationISpec extends IntegrationSpecBase with MongoSpecSu
 
       val response = await(fResponse)
       response.status shouldBe 303
-      response.header(HeaderNames.LOCATION).get should include("/register-your-company/submission-failure")
+      response.header(HeaderNames.LOCATION).get should include("/register-your-company/application-submitted")
     }
 
     "updating confirmation references with 403 should return a deskpro page" in new Setup {

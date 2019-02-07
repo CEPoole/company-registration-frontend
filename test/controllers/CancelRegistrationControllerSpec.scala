@@ -17,7 +17,7 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
+import config.{AppConfig, FrontendAppConfig}
 import connectors._
 import controllers.dashboard.CancelRegistrationController
 import forms.CancelForm
@@ -27,7 +27,7 @@ import models.external.OtherRegStatus
 import org.joda.time.DateTime
 import org.scalatest.mockito.MockitoSugar
 import play.api.http.Status._
-import play.api.i18n.{Messages, MessagesApi}
+import play.api.i18n.Messages
 import play.api.mvc.{AnyContent, Request}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.play.http.ws.WSHttp
@@ -42,12 +42,11 @@ class CancelRegistrationControllerSpec extends SCRSSpec with MockitoSugar with W
   class Setup(r:Request[AnyContent]) {
     val controller = new CancelRegistrationController {
       override val authConnector = mockAuthConnector
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val keystoreConnector= mockKeystoreConnector
-      override val payeConnector = mockPAYEConnector
-      override val vatConnector = mockVATConnector
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val payeConnector = mockServiceConnector
+      override val vatConnector = mockServiceConnector
+      override val appConfig = mockAppConfig
     }
     implicit val request = r
     implicit val messagesApi: Messages = mock[Messages]
@@ -105,7 +104,7 @@ class CancelRegistrationControllerSpec extends SCRSSpec with MockitoSugar with W
       CTRegistrationConnectorMocks
         .retrieveCTRegistration(buildCorporationTaxModel(status = "foo"))
       getStatusMock(SuccessfulResponse(validStatus))
-      canStatusBeCancelledMock(Future.successful("foo"), mockPAYEConnector)
+      canStatusBeCancelledMock(Future.successful("foo"))
 
       showWithAuthorisedUser(controller.showCancelPAYE) {
         result =>
@@ -119,7 +118,7 @@ class CancelRegistrationControllerSpec extends SCRSSpec with MockitoSugar with W
       CTRegistrationConnectorMocks
         .retrieveCTRegistration(buildCorporationTaxModel(status = "foo"))
       getStatusMock(SuccessfulResponse(validStatus))
-      canStatusBeCancelledMock(Future.successful("foo"), mockVATConnector)
+      canStatusBeCancelledMock(Future.successful("foo"))
 
       showWithAuthorisedUser(controller.showCancelVAT) {
         result =>
@@ -178,8 +177,8 @@ class CancelRegistrationControllerSpec extends SCRSSpec with MockitoSugar with W
     "return redirect when cancel is successful" in new Setup(r = FakeRequest()) {
       mockKeystoreFetchAndGet("registrationID", Some("1"))
       CTRegistrationConnectorMocks.retrieveCTRegistration(buildCorporationTaxModel(status = "foo"))
-      getStatusMock(SuccessfulResponse(OtherRegStatus("", None, None, Some("foo"), None)),mockPAYEConnector)
-      cancelRegMock(Cancelled,mockPAYEConnector)
+      getStatusMock(SuccessfulResponse(OtherRegStatus("", None, None, Some("foo"), None)))
+      cancelRegMock(Cancelled)
 
       submitWithAuthorisedUser(controller.submitCancelPAYE, FakeRequest().withFormUrlEncodedBody("cancelService" -> "true")) {
         result =>
@@ -191,8 +190,8 @@ class CancelRegistrationControllerSpec extends SCRSSpec with MockitoSugar with W
     "return redirect when cancel is successful"  in new Setup(r = FakeRequest()) {
       mockKeystoreFetchAndGet("registrationID", Some("1"))
       CTRegistrationConnectorMocks.retrieveCTRegistration(buildCorporationTaxModel(status = "foo"))
-      getStatusMock(SuccessfulResponse(OtherRegStatus("", None, None, Some("foo"), None)),mockVATConnector)
-      cancelRegMock(Cancelled, mockVATConnector)
+      getStatusMock(SuccessfulResponse(OtherRegStatus("", None, None, Some("foo"), None)))
+      cancelRegMock(Cancelled)
 
       submitWithAuthorisedUser(controller.submitCancelVAT, FakeRequest().withFormUrlEncodedBody("cancelService" -> "true")) {
         result =>

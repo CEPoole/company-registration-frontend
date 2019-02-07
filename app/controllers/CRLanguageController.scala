@@ -21,10 +21,13 @@ import javax.inject.Inject
 import play.api.i18n.{Lang, MessagesApi}
 import play.api.mvc.Call
 import play.api.{Application, Configuration}
+import uk.gov.hmrc.play.config.RunMode
 import uk.gov.hmrc.play.language.LanguageController
 
-
-class CRLanguageController @Inject()(implicit override val messagesApi: MessagesApi, conf: Configuration, app: Application) extends LanguageController {
+/**
+  * Created by jackie on 23/02/17.
+  */
+class CRLanguageController @Inject()(implicit override val messagesApi: MessagesApi, conf: Configuration, app: Application) extends LanguageController with RunMode {
 
   /** Converts a string to a URL, using the route to this controller. **/
   def langToCall(lang: String): Call = controllers.routes.CRLanguageController.switchToLanguage(lang)

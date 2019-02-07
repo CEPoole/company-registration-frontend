@@ -31,17 +31,18 @@ trait ServiceConnectorMock {
 
   val mockServiceConnector = mock[ServiceConnector]
 
-  def getStatusMock(response: StatusResponse, mockConn: ServiceConnector = mockServiceConnector) : OngoingStubbing[Future[StatusResponse]] = {
-    when(mockConn.getStatus(Matchers.any[String])
+  def getStatusMock(response: StatusResponse) : OngoingStubbing[Future[StatusResponse]] = {
+    when(mockServiceConnector.getStatus(Matchers.any[String])
     (Matchers.any[HeaderCarrier]))
       .thenReturn(Future.successful(response))
   }
-  def cancelRegMock(response:CancellationResponse, mockConn: ServiceConnector = mockServiceConnector): OngoingStubbing[Future[CancellationResponse]] = {
-    when(mockConn.cancelReg(Matchers.any[String])(Matchers.any[Function1[String, Future[StatusResponse]]]())(Matchers.any[HeaderCarrier])).thenReturn(Future.successful(response))
+  def cancelRegMock(response:CancellationResponse): OngoingStubbing[Future[CancellationResponse]] = {
+    when(mockServiceConnector.cancelReg(Matchers.any[String])(Matchers.any[Function1[String, Future[StatusResponse]]]())(Matchers.any[HeaderCarrier])).thenReturn(Future.successful(response))
   }
-  def canStatusBeCancelledMock(response:Future[String], mockConn: ServiceConnector = mockServiceConnector)
+  def canStatusBeCancelledMock(response:Future[String])
   :OngoingStubbing[Future[String]] ={
-    when(mockConn.canStatusBeCancelled(Matchers.any[String])
+    when(mockServiceConnector.canStatusBeCancelled(Matchers.any[String])
     (Matchers.any[Function1[String, Future[StatusResponse]]]())(Matchers.any[HeaderCarrier])).thenReturn(response)
   }
+
 }

@@ -19,19 +19,20 @@ package controllers.verification
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import helpers.SCRSSpec
 import mocks.{CompanyRegistrationConnectorMock, KeystoreMock, SCRSMocks}
 import models.Email
 import org.jsoup.Jsoup
 import org.mockito.Matchers
-import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import play.api.i18n.MessagesApi
+import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import services.EmailVerificationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 
 
@@ -49,14 +50,13 @@ class EmailVerificationControllerSpec extends CompanyRegistrationConnectorMock w
     val controller = new EmailVerificationController {
       val authConnector = mockAuthConnector
       val keystoreConnector = mockKeystoreConnector
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val emailVerificationService = mockEmailService
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
 
       val createGGWAccountUrl = "testURL"
       val callbackUrl = "testCallBack"
       val frontEndUrl = "/testFrontEndUrl"
+
     }
   }
 

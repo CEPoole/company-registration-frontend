@@ -17,13 +17,12 @@
 package controllers
 
 import builders.AuthBuilder
-import config.FrontendAppConfig
 import controllers.dashboard.DashboardController
 import helpers.SCRSSpec
+import models.auth.AuthDetails
 import models.{Dashboard, IncorpAndCTDashboard, ServiceDashboard, ServiceLinks}
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito._
-import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.{CouldNotBuild, DashboardBuilt, DashboardService, RejectedIncorp}
@@ -37,6 +36,7 @@ class DashboardControllerSpec extends SCRSSpec with WithFakeApplication with Aut
 
   val mockDashboardService = mock[DashboardService]
 
+
   class Setup {
 
     reset(mockDashboardService)
@@ -45,10 +45,9 @@ class DashboardControllerSpec extends SCRSSpec with WithFakeApplication with Aut
       override val dashboardService = mockDashboardService
       override val keystoreConnector = mockKeystoreConnector
       override val authConnector = mockAuthConnector
-      override val compRegConnector = mockCompanyRegistrationConnector
+      override val companyRegistrationConnector = mockCompanyRegistrationConnector
       override val companiesHouseURL = "testUrl"
-      implicit val appConfig: FrontendAppConfig = fakeApplication.injector.instanceOf[FrontendAppConfig]
-      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
+      override val appConfig = mockAppConfig
     }
   }
 
@@ -161,4 +160,5 @@ class DashboardControllerSpec extends SCRSSpec with WithFakeApplication with Aut
       status(res) shouldBe 303
     }
   }
+
 }

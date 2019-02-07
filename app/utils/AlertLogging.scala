@@ -17,6 +17,7 @@
 package utils
 
 import java.time.LocalTime
+import java.time.LocalTime.now
 import java.time.format.DateTimeFormatter
 
 import org.joda.time.{DateTime, DateTimeZone}

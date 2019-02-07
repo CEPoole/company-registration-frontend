@@ -16,26 +16,27 @@
 
 package services
 
-import javax.inject.Inject
-
 import address.client.RecordSet
 import audit.events._
+import config.FrontendAuditConnector
 import connectors.{CompanyRegistrationConnector, KeystoreConnector, S4LConnector}
 import models.{Address => OldAddress, _}
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{AnyContent, Request}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import utils.SCRSExceptions
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class PPOBServiceImpl @Inject()(val compRegConnector: CompanyRegistrationConnector,
-                                val keystoreConnector: KeystoreConnector,
-                                val s4LConnector: S4LConnector,
-                                val auditConnector: AuditConnector,
-                                val addressLookupService: AddressLookupService) extends PPOBService
+object PPOBService extends PPOBService {
+  val compRegConnector = CompanyRegistrationConnector
+  val keystoreConnector = KeystoreConnector
+  val s4LConnector = S4LConnector
+  val auditConnector = FrontendAuditConnector
+  val addressLookupService = AddressLookupService
+}
 
 trait PPOBService extends SCRSExceptions {
   val keystoreConnector: KeystoreConnector
@@ -128,3 +129,4 @@ trait PPOBService extends SCRSExceptions {
     }
   }
 }
+
