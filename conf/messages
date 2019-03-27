@@ -461,3 +461,15 @@ footer.phone.call_support                                           = Call our s
 
 #HealthCheck
 page.healthcheck.header                                             = Service healthy
+
+#Groups
+page.groups.groupRelief.title                                          = Group relief
+page.groups.groupRelief.heading                                        = For Corporation Tax, will [XXX] be in the same group for group relief purposes as the company that owns it?
+page.groups.groupRelief.p1                                             = This can be the parent company if it is in the same group as [XXX].
+page.groups.groupRelief.dropdownTitle                                  = What is group relief?
+page.groups.groupRelief.dropdownText                                   = Any company that is a member of a group for group relief purposes may claim or surrender losses and other amounts to or from other members of that group to reduce their Corporation Tax liability.
+page.groups.groupRelief.yesLabel                                       = Yes
+page.groups.groupRelief.noLabel                                        = No
+error.groupRelief.required                                             = Tell us whether for Corporation Tax, the new company will be in the same group for group relief purposes as the company that owns it
+
+
