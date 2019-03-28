@@ -18,7 +18,29 @@ package models
 
 import play.api.libs.json.Json
 
-case class GroupRelief(groupRelief: String = "")
+case class Groups(
+                   groupRelief: Boolean = true,
+                   nameOfCompany: Option[GroupCompanyName],
+                   address: Option[CHROAddress],
+                   groupUTR: Option[GroupUTR]
+                 )
+
+case class GroupCompanyName(name: String, nameType: GroupCompanyNameEnum.Value)
+
+case class GroupUTR(UTR: Option[String])
+
+object GroupUTR{
+  implicit val format = Json.format[GroupUTR]
+}
+
+object GroupCompanyNameEnum extends Enumeration {
+  val Other = Value
+  val CohoEntered = Value
+}
+
+case class GroupRelief(
+                      groupRelief: String = ""
+                      )
 
 object GroupRelief {
   implicit val format = Json.format[GroupRelief]

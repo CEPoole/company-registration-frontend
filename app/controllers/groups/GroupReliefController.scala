@@ -52,9 +52,10 @@ trait GroupReliefController extends FrontendController with AuthFunction with Co
     ctAuthorised {
       checkStatus { regID =>
         for {
-          groupRelief <- groupReliefService.retrieveGroupRelief(regID)
+          groups <- groupReliefService.retrieveGroupRelief(regID)
+          companyName    <- compRegConnector.fetchCompanyName(regID)
         } yield {
-          Ok(GroupReliefView(GroupReliefForm.form.fill(groupRelief)))
+          Ok(GroupReliefView(GroupReliefForm.form.fill(GroupRelief(groups.groupRelief.toString)),companyName))
         }
       }
     }
@@ -64,7 +65,8 @@ trait GroupReliefController extends FrontendController with AuthFunction with Co
     ctAuthorised {
       registered { a =>
         GroupReliefForm.form.bindFromRequest.fold(
-          errors => Future.successful(BadRequest(GroupReliefView(errors))),
+          errors =>
+          compRegConnector.fetchCompanyName(a).map(cName => BadRequest(GroupReliefView(errors, cName))),
           relief => {
 //            val context = metricsService.saveTradingDetailsToCRTimer.time()
             groupReliefService.updateGroupRelief(relief).map {

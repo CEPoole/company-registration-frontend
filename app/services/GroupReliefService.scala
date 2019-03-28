@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 import connectors.CompanyRegistrationConnector
 import connectors.KeystoreConnector
-import models.{GroupRelief, GroupReliefResponse, GroupReliefSuccessResponse}
+import models.{GroupRelief, GroupReliefResponse, GroupReliefSuccessResponse, Groups}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.SCRSExceptions
 
@@ -39,12 +39,12 @@ trait GroupReliefService extends CommonService with SCRSExceptions {
       regID <- fetchRegistrationID
 //      tD <- compRegConnector.updateGroupRelief(regID, GroupReliefDetails)
     } yield {
-      GroupReliefSuccessResponse(GroupRelief("true"))
+      GroupReliefSuccessResponse(groupRelief)
     }
   }
 
-  def retrieveGroupRelief(registrationID : String)(implicit hc: HeaderCarrier) : Future[GroupRelief] = {
+  def retrieveGroupRelief(registrationID : String)(implicit hc: HeaderCarrier) : Future[Groups] = {
 //    compRegConnector.retrieveGroupRelief(registrationID).map(_.fold(GroupRelief())(t => t))
-    Future.successful(GroupRelief("true"))
+    Future.successful(Groups(true,None,None,None))
   }
 }
