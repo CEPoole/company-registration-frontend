@@ -39,14 +39,20 @@
     <p>@Messages("page.groups.groupRelief.p1")</p>
 </div>
 
+<div class="form-group">
+    <details>
+        <summary class="summary">@Messages("page.groups.groupRelief.dropdownTitle")</summary>
+        <div class="panel panel-border-narrow">
+            <p>@Messages("page.groups.groupRelief.dropdownText")</p>
+        </div>
+    </details>
+</div>
+
     @form(action = controllers.groups.routes.GroupReliefController.submit()) {
         <div class="form-group">
-            @inputRadioGroupHidden(
-                group_relief("groupRelief"),
+            @inputRadioGroup(
+            groupRelief("groupRelief"),
                 Seq("true" -> Messages("page.groups.groupRelief.yesLabel"),"false" -> Messages("page.groups.groupRelief.noLabel")),
-                '_fieldsetId -> "group-relief",
-                '_idHidden -> "groupRelief",
-                '_classHidden -> "panel panel-indent",
                 '_labelClass -> "block-label radio-label",
                 '_legend -> Messages("page.groups.groupRelief.title"),
                 '_legendClass -> "visually-hidden"

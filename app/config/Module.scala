@@ -21,6 +21,7 @@ import config.filters.{SessionIdFilter, SessionIdFilterImpl}
 import connectors._
 import controllers.dashboard.{CancelRegistrationController, CancelRegistrationControllerImpl, DashboardController, DashboardControllerImpl}
 import controllers.feedback.{FeedbackController, FeedbackControllerImpl}
+import controllers.groups.{GroupReliefController, GroupReliefControllerImpl}
 import controllers.handoff._
 import controllers.healthcheck.{HealthCheckController, HealthCheckControllerImpl}
 import controllers.reg._
@@ -94,6 +95,7 @@ class Module extends AbstractModule {
     bind(classOf[EnrolmentsService]).to(classOf[EnrolmentsServiceImpl]).asEagerSingleton()
     bind(classOf[TradingDetailsService]).to(classOf[TradingDetailsServiceImpl]).asEagerSingleton()
     bind(classOf[TestIncorporationService]).to(classOf[TestIncorporationServiceImpl]).asEagerSingleton()
+    bind(classOf[GroupReliefService]).to(classOf[GroupReliefServiceImpl]).asEagerSingleton()
 
     //controllers
     bind(classOf[CancelRegistrationController]).to(classOf[CancelRegistrationControllerImpl]).asEagerSingleton()
@@ -128,6 +130,7 @@ class Module extends AbstractModule {
     bind(classOf[TradingDetailsController]).to(classOf[TradingDetailsControllerImpl]).asEagerSingleton()
     bind(classOf[WelcomeController]).to(classOf[WelcomeControllerImpl]).asEagerSingleton()
     bind(classOf[EmailVerificationController]).to(classOf[EmailVerificationControllerImpl]).asEagerSingleton()
+    bind(classOf[GroupReliefController]).to(classOf[GroupReliefControllerImpl]).asEagerSingleton()
 
     //test controllers
     bind(classOf[CTMongoTestController]).to(classOf[CTMongoTestControllerImpl]).asEagerSingleton()
