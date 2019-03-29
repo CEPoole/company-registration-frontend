@@ -22,7 +22,7 @@ import config.FrontendAppConfig
 import connectors.{CompanyRegistrationConnector, KeystoreConnector}
 import controllers.auth.AuthFunction
 import controllers.reg.{ControllerErrorHandler, routes}
-import forms.GroupReliefForm
+import forms.{GroupNameForm, GroupReliefForm}
 import models._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
@@ -30,60 +30,60 @@ import services.{GroupReliefService, MetricsService}
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import utils.SessionRegistration
-import views.html.groups.GroupReliefView
+import views.html.groups.{GroupNameView, GroupReliefView}
 
 import scala.concurrent.Future
 
-class GroupReliefControllerImpl @Inject()(val authConnector: PlayAuthConnector,
+class GroupNameControllerImpl @Inject()(val authConnector: PlayAuthConnector,
                                              val groupReliefService: GroupReliefService,
                                              val metricsService: MetricsService,
                                              val compRegConnector: CompanyRegistrationConnector,
                                              val keystoreConnector: KeystoreConnector,
                                              val appConfig: FrontendAppConfig,
-                                             val messagesApi: MessagesApi) extends GroupReliefController
+                                             val messagesApi: MessagesApi) extends GroupNameController
 
-trait GroupReliefController extends FrontendController with AuthFunction with ControllerErrorHandler with SessionRegistration with I18nSupport {
+trait GroupNameController extends FrontendController with AuthFunction with ControllerErrorHandler with SessionRegistration with I18nSupport {
   implicit val appConfig: FrontendAppConfig
 
-  val groupReliefService : GroupReliefService
+//  val groupNameService : GroupNameService
   val metricsService: MetricsService
 
   val show = Action.async { implicit request =>
     ctAuthorised {
       checkStatus { regID =>
         for {
-          groups <- groupReliefService.retrieveGroupRelief(regID)
+          shareHolderNames <- Future.successful(Shareholders(List("Company1","Company2","Company3")))
           companyName    <- compRegConnector.fetchCompanyName(regID)
         } yield {
-          Ok(GroupReliefView(GroupReliefForm.form.fill(GroupRelief(groups.groupRelief.toString)),companyName))
+          Ok(GroupNameView(GroupNameForm.form.fill(shareHolderNames)))
         }
       }
     }
   }
 
-  val submit = Action.async { implicit request =>
-    ctAuthorised {
-      registered { a =>
-        GroupReliefForm.form.bindFromRequest.fold(
-          errors =>
-          compRegConnector.fetchCompanyName(a).map(cName => BadRequest(GroupReliefView(errors, cName))),
-          relief => {
-            groupReliefService.updateGroupRelief(relief).map {
-              case GroupReliefSuccessResponse(_) =>
-                relief.groupRelief match {
-                  case "true" =>  Redirect(routes.GroupReliefController.show())
-                  case "false" => Redirect(routes.GroupReliefController.show())
-                }
-              case GroupReliefErrorResponse(_) =>
-                BadRequest(defaultErrorPage)
-              case GroupReliefNotFoundResponse =>
-                BadRequest(defaultErrorPage)
-              case GroupReliefForbiddenResponse =>
-                BadRequest(defaultErrorPage)
-            }
-          }
-        )
-      }
-    }
-  }
+//  val submit = Action.async { implicit request =>
+//    ctAuthorised {
+//      registered { a =>
+//        GroupReliefForm.form.bindFromRequest.fold(
+//          errors =>
+//          compRegConnector.fetchCompanyName(a).map(cName => BadRequest(GroupReliefView(errors, cName))),
+//          relief => {
+//            groupReliefService.updateGroupRelief(relief).map {
+//              case GroupReliefSuccessResponse(_) =>
+//                relief.groupRelief match {
+//                  case "true" =>  Redirect(routes.GroupReliefController.show())
+//                  case "false" => Redirect(routes.GroupReliefController.show())
+//                }
+//              case GroupReliefErrorResponse(_) =>
+//                BadRequest(defaultErrorPage)
+//              case GroupReliefNotFoundResponse =>
+//                BadRequest(defaultErrorPage)
+//              case GroupReliefForbiddenResponse =>
+//                BadRequest(defaultErrorPage)
+//            }
+//          }
+//        )
+//      }
+//    }
+//  }
 }

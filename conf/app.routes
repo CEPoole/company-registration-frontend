@@ -145,6 +145,11 @@ POST       /cancel-vat                              controllers.dashboard.Cancel
 GET        /group-relief                            controllers.groups.GroupReliefController.show
 POST       /group-relief                            controllers.groups.GroupReliefController.submit
 
+GET        /owning-companys-name                    controllers.groups.GroupNameController.show
+#POST       /owning-companys-name                   controllers.groups.GroupNameController.submit
+
+GET        /owning-companys-utr                     controllers.groups.GroupUtrController.show
+POST       /owning-companys-utr                     controllers.groups.GroupUtrController.submit
 
 ## DEPRECATED
 

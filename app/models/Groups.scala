@@ -27,7 +27,7 @@ case class Groups(
 
 case class GroupCompanyName(name: String, nameType: GroupCompanyNameEnum.Value)
 
-case class GroupUTR(UTR: Option[String])
+case class GroupUTR(UTR: String, utr : String)
 
 object GroupUTR{
   implicit val format = Json.format[GroupUTR]
@@ -46,8 +46,20 @@ object GroupRelief {
   implicit val format = Json.format[GroupRelief]
 }
 
+
+case class Shareholders(shareHolderName: List[String])
+
+
+
+
 sealed trait GroupReliefResponse
 case class GroupReliefSuccessResponse(response: GroupRelief) extends GroupReliefResponse
 case object GroupReliefNotFoundResponse extends GroupReliefResponse
 case object GroupReliefForbiddenResponse extends GroupReliefResponse
 case class GroupReliefErrorResponse(err: Exception) extends GroupReliefResponse
+
+sealed trait GroupUtrResponse
+case class GroupUtrSuccessResponse(response: GroupUTR) extends GroupUtrResponse
+case object GroupUtrNotFoundResponse extends GroupUtrResponse
+case object GroupUtrForbiddenResponse extends GroupUtrResponse
+case class GroupUtrErrorResponse(err: Exception) extends GroupUtrResponse
