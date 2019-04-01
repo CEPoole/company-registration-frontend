@@ -27,7 +27,7 @@ case class Groups(
 
 case class GroupCompanyName(name: String, nameType: GroupCompanyNameEnum.Value)
 
-case class GroupUTR(UTR: String, utr : String)
+case class GroupUTR(UTR: String, utr : Option[String])
 
 object GroupUTR{
   implicit val format = Json.format[GroupUTR]
@@ -47,7 +47,8 @@ object GroupRelief {
 }
 
 
-case class Shareholders(shareHolderName: List[String])
+case class Shareholders(shareHolderName: List[String],
+                        other: Option[String])
 
 
 

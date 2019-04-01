@@ -16,7 +16,7 @@
 
 package forms
 
-import models.{EmptyStringValidator, GroupRelief, Shareholders}
+import models.{EmptyStringValidator, Shareholders}
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -24,7 +24,8 @@ object GroupNameForm extends EmptyStringValidator {
 
   def form = Form(
     mapping(
-      "groupName" -> list(customErrorTextValidation)
+      "groupName" -> list(customErrorTextValidation),
+      "Other" -> optional(customErrorTextValidation)
     )(Shareholders.apply)(Shareholders.unapply)
   )
 }

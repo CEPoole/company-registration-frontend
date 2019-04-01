@@ -58,7 +58,7 @@ trait GroupUtrController extends FrontendController with AuthFunction with Commo
             utr <- groupUtrService.retrieveGroupUtr(regID)
 //            companyName    <- compRegConnector.fetchCompanyName(regID)
           } yield {
-            Ok(GroupUtrView(GroupUtrForm.form.fill(GroupUTR(utr.UTR, " "))))
+            Ok(GroupUtrView(GroupUtrForm.form.fill(GroupUTR(utr.UTR, None))))
           }
 
         }

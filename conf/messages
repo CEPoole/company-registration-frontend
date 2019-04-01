@@ -489,6 +489,6 @@ page.groups.groupUtr.utrLabel                                          = Enter t
 page.groups.groupUtr.helpText                                          = For example, 1234567890
 error.groupUtr.required                                                = Tell us whether you know the owning company''s UTR
 error.groupUtr.yesButNoUtr                                             = Enter the owning company''s UTR
-error.groupUtr.utrMoreThan10Chars                                      = Enter a UTR using 10 characters or less
-error.groupUtr.utrHasSymbols                                           = Enter a UTR using only letters and numbers
+error.groupUtr.utrMoreThan10Chars                                      = Enter a UTR using 10 digits or less
+error.groupUtr.utrHasSymbols                                           = Enter a UTR using only numbers
 

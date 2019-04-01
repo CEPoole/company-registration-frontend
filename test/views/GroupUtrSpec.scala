@@ -18,29 +18,27 @@ package views
 
 import _root_.helpers.SCRSSpec
 import builders.AuthBuilder
-import controllers.groups.GroupReliefController
+import controllers.groups.GroupUtrController
 import fixtures.UserDetailsFixture
-import mocks.GroupReliefServiceMock
-import models.{Email, Groups}
+import mocks.GroupUtrServiceMock
+import models.{Email, GroupUTR, Groups}
 import org.jsoup.Jsoup
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import services.MetricsService
 import uk.gov.hmrc.play.test.WithFakeApplication
 
 import scala.concurrent.Future
 
-class GroupReliefSpec extends SCRSSpec with UserDetailsFixture
-  with WithFakeApplication with AuthBuilder with GroupReliefServiceMock {
+class GroupUtrSpec extends SCRSSpec with UserDetailsFixture
+  with WithFakeApplication with AuthBuilder with GroupUtrServiceMock {
 
   class Setup {
-    val controller = new GroupReliefController {
+    val controller = new GroupUtrController {
       override val authConnector = mockAuthConnector
-      override val metricsService = mock[MetricsService]
-      override val groupReliefService = mockGroupReliefService
+      override val groupUtrService = mockGroupUtrService
       override val compRegConnector = mockCompanyRegistrationConnector
       override val keystoreConnector= mockKeystoreConnector
       override val appConfig = mockAppConfig
@@ -73,16 +71,14 @@ class GroupReliefSpec extends SCRSSpec with UserDetailsFixture
       CTRegistrationConnectorMocks.retrieveCTRegistration(ctDocFirstTimeThrough)
       when(mockCompanyRegistrationConnector.fetchCompanyName(any())(any())).thenReturn(Future.successful("testCompanyname1"))
       when(mockCompanyRegistrationConnector.retrieveEmail(any())(any())).thenReturn(Future.successful(Some(Email("verified@email","GG",true,true,true))))
-      when(mockGroupReliefService.retrieveGroupRelief(any())(any())).thenReturn(Future.successful(Groups(true,None,None,None)))
+      when(mockGroupUtrService.retrieveGroupUtr(any())(any())).thenReturn(Future.successful(GroupUTR("", None)))
 
       showWithAuthorisedUser(controller.show) {
         result =>
           val document = Jsoup.parse(contentAsString(result))
 
-          document.title() shouldBe "Group relief"
-          document.getElementById("main-heading").text() shouldBe "For Corporation Tax, will testCompanyname1 be in the same group for group relief purposes as the company that owns it?"
-          document.getElementById("paragraph-one").text() shouldBe "This can be the parent company if it is in the same group as testCompanyname1."
-
+          document.title() shouldBe "Do you know XXXX's Unique Taxpayer Reference (UTR)?"
+          document.getElementById("main-heading").text() shouldBe "Do you know [XXX]'s Unique Taxpayer Reference (UTR)?"
       }
     }
   }

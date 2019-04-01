@@ -16,7 +16,7 @@
 
 package forms
 
-import models.{EmptyStringValidator, GroupUTR, Shareholders}
+import models.{EmptyStringValidator, GroupUTR}
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms._
 import uk.gov.voa.play.form.ConditionalMappings._
@@ -24,7 +24,7 @@ import utils.SCRSValidators._
 
 object GroupUtrForm extends EmptyStringValidator {
   val radioButtonvalidation = (radioValue:String) => Seq("utr","noutr").contains(radioValue)
-  private def ifOther(mapping: Mapping[String]): Mapping[String] = onlyIf(isEqual("groupUtr", "utr"), mapping)("")
+  private def ifOther(mapping: Mapping[String]): Mapping[Option[String]] = mandatoryIfEqual("groupUtr", "utr", mapping)
   def form = Form(
     mapping(
       "groupUtr" -> customErrorTextValidation.verifying("error.groupUtr.required", radioButtonvalidation),

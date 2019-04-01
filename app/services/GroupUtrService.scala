@@ -45,6 +45,6 @@ trait GroupUtrService extends CommonService with SCRSExceptions {
 
   def retrieveGroupUtr(registrationID : String)(implicit hc: HeaderCarrier) : Future[GroupUTR] = {
 //    compRegConnector.retrieveGroupRelief(registrationID).map(_.fold(GroupRelief())(t => t))
-    Future.successful(GroupUTR("", ""))
+    Future.successful(GroupUTR("", None))
   }
 }

@@ -52,7 +52,7 @@ trait GroupNameController extends FrontendController with AuthFunction with Cont
     ctAuthorised {
       checkStatus { regID =>
         for {
-          shareHolderNames <- Future.successful(Shareholders(List("Company1","Company2","Company3")))
+          shareHolderNames <- Future.successful(Shareholders(List("Company1","Company2","Company3"), None))
           companyName    <- compRegConnector.fetchCompanyName(regID)
         } yield {
           Ok(GroupNameView(GroupNameForm.form.fill(shareHolderNames)))
