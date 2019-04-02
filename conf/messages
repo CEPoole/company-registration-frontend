@@ -478,7 +478,10 @@ page.groups.groupName.nameLabel1                                       = CORP NA
 page.groups.groupName.nameLabel2                                       = CORP NAME2
 page.groups.groupName.None                                             = None of these
 page.groups.groupName.somethingElse                                    = Something else
+error.groupName.required                                               = Tell us the owning company''s name
 page.groups.groupName.enterName                                        = Enter the company name
+page.groups.groupName.20CharsOrLess                                    = Enter the name using 20 characters or less
+page.groups.groupName.invalidFormat                                    = Enter the name using only letters, numbers, spaces, hyphens and apostrophes
 
 page.groups.groupUtr.title                                             = Do you know XXXX''s Unique Taxpayer Reference (UTR)?
 page.groups.groupUtr.heading                                           = Do you know [XXX]''s Unique Taxpayer Reference (UTR)?
