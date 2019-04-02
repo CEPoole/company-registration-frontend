@@ -23,12 +23,19 @@ import uk.gov.voa.play.form.ConditionalMappings._
 import utils.SCRSValidators._
 
 object GroupUtrForm extends EmptyStringValidator {
+
+  private def unapplyGUTR(groupUTR: GroupUTR): Option[(String, Option[String])] = {
+    val firstRadioButtonValue = groupUTR.UTR.fold("noutr")(_ => "utr")
+    Some(firstRadioButtonValue, groupUTR.UTR)
+  }
   val radioButtonvalidation = (radioValue:String) => Seq("utr","noutr").contains(radioValue)
   private def ifOther(mapping: Mapping[String]): Mapping[Option[String]] = mandatoryIfEqual("groupUtr", "utr", mapping)
-  def form = Form(
+  def form: Form[GroupUTR] = Form(
     mapping(
       "groupUtr" -> customErrorTextValidation.verifying("error.groupUtr.required", radioButtonvalidation),
       "utr" -> ifOther(text.verifying(UtrValidation))
-    )(GroupUTR.apply)(GroupUTR.unapply)
+    )((gUtr, utr) => GroupUTR(utr))(unapplyGUTR)
   )
+
+
 }

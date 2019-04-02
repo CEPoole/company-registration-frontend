@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.play.views.html.{helpers => govHelpers}
 @import views.html.helpers.{inputRadioGroupHidden, errorSummary}
 
-@(groupUTR : Form[GroupUTR])(implicit request: Request[_], lang: Lang, messages: Messages, appConfig: config.FrontendAppConfig)
+@(groupUTR : Form[GroupUTR], parentCompanyName : String)(implicit request: Request[_], lang: Lang, messages: Messages, appConfig: config.FrontendAppConfig)
 
     @differentHidden = {
 <span class="form-label">@Messages("page.groups.groupUtr.utrLabel")</span>
@@ -31,7 +31,7 @@
     )
     }
 
-@main_template(title = Messages("page.groups.groupUtr.title"), mainClass = None) {
+@main_template(title = Messages("page.groups.groupUtr.title", parentCompanyName), mainClass = None) {
 
     <a id="back" class="link-back" href="javascript:history.back()">@Messages("common.button.back")</a>
 
@@ -41,7 +41,7 @@ groupUTR, dataJourney = Some("GroupUTR")
 )
 
     <div class="form-group">
-        <h1 id="main-heading">@Messages("page.groups.groupUtr.heading")</h1>
+        <h1 id="main-heading">@Messages("page.groups.groupUtr.heading", parentCompanyName)</h1>
 
         <div class="form-group">
                 <p id="para-one">@Messages("page.groups.groupUtr.p1")</p>

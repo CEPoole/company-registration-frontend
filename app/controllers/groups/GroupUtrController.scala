@@ -55,10 +55,10 @@ trait GroupUtrController extends FrontendController with AuthFunction with Commo
     ctAuthorised {
         checkStatus { regID =>
           for {
-            utr <- groupUtrService.retrieveGroupUtr(regID)
-//            companyName    <- compRegConnector.fetchCompanyName(regID)
-          } yield {
-            Ok(GroupUtrView(GroupUtrForm.form.fill(GroupUTR(utr.UTR, None))))
+            (optUTR,groupParentCompanyName)  <- groupUtrService.retrieveOwningCompanyDetails(regID)
+              } yield {
+            val formVal = optUTR.fold(GroupUtrForm.form)(utr => GroupUtrForm.form.fill(utr))
+            Ok(GroupUtrView(formVal,groupParentCompanyName))
           }
 
         }
@@ -68,10 +68,10 @@ trait GroupUtrController extends FrontendController with AuthFunction with Commo
 
   val submit = Action.async { implicit request =>
     ctAuthorised {
-      registered { a =>
+      registered { regID =>
         GroupUtrForm.form.bindFromRequest.fold(
           errors =>
-            compRegConnector.fetchCompanyName(a).map(cName => BadRequest(GroupUtrView(errors))),
+            groupUtrService.retrieveOwningCompanyDetails(regID).map(res => BadRequest(GroupUtrView(errors,res._2))),
           relief => {
             groupUtrService.updateGroupUtr(relief).map {
               case GroupUtrSuccessResponse(_) =>

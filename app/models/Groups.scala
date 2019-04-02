@@ -27,7 +27,7 @@ case class Groups(
 
 case class GroupCompanyName(name: String, nameType: GroupCompanyNameEnum.Value)
 
-case class GroupUTR(UTR: String, utr : Option[String])
+case class GroupUTR(UTR : Option[String])
 
 object GroupUTR{
   implicit val format = Json.format[GroupUTR]
