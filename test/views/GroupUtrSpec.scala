@@ -71,14 +71,14 @@ class GroupUtrSpec extends SCRSSpec with UserDetailsFixture
       CTRegistrationConnectorMocks.retrieveCTRegistration(ctDocFirstTimeThrough)
       when(mockCompanyRegistrationConnector.fetchCompanyName(any())(any())).thenReturn(Future.successful("testCompanyname1"))
       when(mockCompanyRegistrationConnector.retrieveEmail(any())(any())).thenReturn(Future.successful(Some(Email("verified@email","GG",true,true,true))))
-      when(mockGroupUtrService.retrieveGroupUtr(any())(any())).thenReturn(Future.successful(GroupUTR("", None)))
+      when(mockGroupUtrService.retrieveOwningCompanyDetails(any())(any())).thenReturn(Future.successful(Some(GroupUTR(None)), "testGroupCompanyname1"))
 
       showWithAuthorisedUser(controller.show) {
         result =>
           val document = Jsoup.parse(contentAsString(result))
 
-          document.title() shouldBe "Do you know XXXX's Unique Taxpayer Reference (UTR)?"
-          document.getElementById("main-heading").text() shouldBe "Do you know [XXX]'s Unique Taxpayer Reference (UTR)?"
+          document.title() shouldBe "Do you know testGroupCompanyname1's Unique Taxpayer Reference (UTR)?"
+          document.getElementById("main-heading").text() shouldBe "Do you know testGroupCompanyname1's Unique Taxpayer Reference (UTR)?"
       }
     }
   }

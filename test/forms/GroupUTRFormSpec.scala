@@ -32,7 +32,7 @@ class GroupUTRFormSpec extends UnitSpec with WithFakeApplication {
 println("###############################" + result)
 //      result.errors.head.message shouldBe "error.required"
       result.get.UTR shouldBe "1234"
-      result.get.utr shouldBe "1111"
+      result.get.UTR shouldBe "1111"
     }
     //    "bind successfully with differentEmail as registrationEmail and check the value" in {
     //      val result = fillForm("differentEmail", Option("abc@def.co.uk"))

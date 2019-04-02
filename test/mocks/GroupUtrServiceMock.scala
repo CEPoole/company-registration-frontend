@@ -32,8 +32,8 @@ trait GroupUtrServiceMock {
 
   object GroupUtrServiceMocks {
     def retrieveUtrRelief(response: GroupUTR): OngoingStubbing[Future[GroupUTR]] = {
-      when(mockGroupUtrService.retrieveGroupUtr(Matchers.any())(Matchers.any()))
-        .thenReturn(Future.successful(response))
+      when(mockGroupUtrService.retrieveOwningCompanyDetails(Matchers.any())(Matchers.any()))
+        .thenReturn(Future.successful(Some(response(None)), "testGroupCompanyname1"))
     }
 
     def updateUtrRelief(response: GroupUtrResponse): OngoingStubbing[Future[GroupUtrResponse]] = {
