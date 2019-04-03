@@ -1,0 +1,68 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import helpers.{oneOfManyErrorWrapper, inputRadioGroup}
+@import models.Groups
+@import uk.gov.hmrc.play.views.html.{helpers => govHelpers}
+
+@(shareholdersForm: Form[Shareholders])(implicit request: Request[_], messages: Messages)
+
+
+
+@*
+
+
+
+
+@formContent = {
+<fieldset>
+    <legend class="visually-hidden">@messages("pages.directorDetails.description")</legend>
+
+    @helper.repeat(shareholdersForm("groupName")) { shField =>
+    <div class="form-field">
+        @inputRadioGroup(
+        shField,
+        '_labelClass -> "form-label",
+        '_inputHint -> "hint",
+        '_label -> "label")
+        )
+    </div>
+    }
+</fieldset>
+}
+
+
+
+@main_template(title = messages(s"page.groups.groupName.title")) {
+
+
+<h1 class="form-title heading-large" id="pageHeading">@messages("page.groups.groupName.heading")</h1>
+
+
+
+@govHelpers.form(action = controllers.groups.routes.GroupName.submit()) {
+<div class="form-group">
+    @oneOfManyErrorWrapper(formContent)
+</div>
+
+<div class="form-group">
+    <button class="button" type="submit" id="continue" >@messages("app.common.saveAndContinue")</button>
+</div>
+}
+
+}
+
+*@

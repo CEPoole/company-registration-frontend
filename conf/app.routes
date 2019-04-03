@@ -141,7 +141,15 @@ POST       /cancel-paye                             controllers.dashboard.Cancel
 GET        /cancel-vat                              controllers.dashboard.CancelRegistrationController.showCancelVAT
 POST       /cancel-vat                              controllers.dashboard.CancelRegistrationController.submitCancelVAT
 
+#Groups section
+GET        /group-relief                            controllers.groups.GroupReliefController.show
+POST       /group-relief                            controllers.groups.GroupReliefController.submit
 
+GET        /owning-companys-name                    controllers.groups.GroupNameController.show
+#POST       /owning-companys-name                   controllers.groups.GroupNameController.submit
+
+GET        /owning-companys-utr                     controllers.groups.GroupUtrController.show
+POST       /owning-companys-utr                     controllers.groups.GroupUtrController.submit
 
 ## DEPRECATED
 

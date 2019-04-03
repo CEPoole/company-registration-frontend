@@ -25,6 +25,24 @@ $(document).ready($(function() {
     var OtherEmail = $("#registrationEmail-differentemail");
     var noToggleCurrentEmail = $("#differentEmail-hidden");
 
+    var noutr = $("#groupUtr-noutr");
+    var utr = $("#groupUtr-utr");
+    var noTogglenoUtr = $("#utr-hidden");
+
+    if(utr.is(":checked")){
+          noTogglenoUtr.show();
+     } else {
+          noTogglenoUtr.hide();
+     }
+
+     utr.on("change", function () {
+         noTogglenoUtr.show();
+     });
+
+     noutr.on("change", function () {
+         noTogglenoUtr.hide();
+     });
+
     if(OtherEmail.is(":checked")){
           noToggleCurrentEmail.show();
      } else {

@@ -29,6 +29,7 @@ object SCRSValidators {
   val postCodeRegex                   = """^[A-Z]{1,2}[0-9][0-9A-Z]? [0-9][A-Z]{2}$""".r
   private val phoneNumberRegex        = """^[0-9 ]{1,20}$""".r
   private val completionCapacityRegex = """^[A-Za-z0-9 '\-]{1,100}$""".r
+  private val utrRegex                = """^[0-9]{0,10}$"""
   private val emailRegex              = """^(?!.{71,})([-0-9a-zA-Z.+_]+@[-0-9a-zA-Z.+_]+\.[a-zA-Z]{1,11})$"""
   private val emailRegexDes           = """^[A-Za-z0-9\-_.@]{1,70}$"""
   val datePatternRegex                = """([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))"""
@@ -51,6 +52,18 @@ object SCRSValidators {
       val errors = text.trim match {
         case completionCapacityRegex() => Nil
         case _ => Seq(ValidationError(Messages("validation.invalid")))
+      }
+      if (errors.isEmpty) Valid else Invalid(errors)
+  })
+
+  val UtrValidation: Constraint[String] = Constraint("constraints.utr")({
+    text =>
+      val errors = text match {
+        case t if t.length == 0 => Seq(ValidationError(Messages("error.groupUtr.yesButNoUtr")))
+        case t if t.matches(utrRegex) => Nil
+        case t if t.length > 10 => Seq(ValidationError(Messages("error.groupUtr.utrMoreThan10Chars")))
+        case t if !t.matches("[0-9]+") => Seq(ValidationError(Messages("error.groupUtr.utrHasSymbols")))
+        case _ => Seq(ValidationError(Messages("error.groupUtr.yesButNoUtr")))
       }
       if (errors.isEmpty) Valid else Invalid(errors)
   })
