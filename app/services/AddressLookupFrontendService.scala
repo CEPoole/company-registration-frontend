@@ -134,7 +134,9 @@ def topLevelConfigGenerator(continueUrl:String) = {
 
   def buildAddressLookupUrl(signOutUrl: String, call: Call)(implicit hc: HeaderCarrier): Future[String] = {
     addressLookupFrontendConnector.getOnRampURL(
-      initConfig(signOutUrl,call)
+      initConfig(
+        controllers.reg.routes.SignInOutController.timeoutShow().url,
+        call)
     )
   }
 

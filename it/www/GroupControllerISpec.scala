@@ -4,7 +4,7 @@ package www
 import java.util.UUID
 
 import config.FrontendAppConfig
-import fixtures.HandOffFixtures
+import fixtures.{Fixtures, HandOffFixtures}
 import itutil.{FakeAppConfig, IntegrationSpecBase, LoginStub, PayloadExtractor}
 import models.handoff.{NavLinks, PSCHandOff}
 import play.api.http.HeaderNames
@@ -16,28 +16,14 @@ import utils.JweCommon
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeAppConfig with HandOffFixtures {
+class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeAppConfig with HandOffFixtures with Fixtures {
 
   override implicit lazy val app = FakeApplication(additionalConfiguration = fakeConfig())
   val userId = "test-user-id"
   val regId = "12345"
 
   class Setup {
-    val footprintResponse =
-      s"""
-         |{
-         |  "registration-id":"$regId",
-         |  "created":true,
-         |  "confirmation-reference":false,
-         |  "payment-reference":false,
-         |  "email":{
-         |    "address":"some@email.com",
-         |    "type":"test",
-         |    "link-sent":true,
-         |    "verified":true
-         |  }
-         |}
-     """.stripMargin
+
     val statusResponseFromCR = s"""
          |{
          |    "registrationID" : "$regId",
@@ -65,9 +51,9 @@ class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeA
 
   s"${controllers.handoff.routes.GroupController.groupHandBack("").url}" should {
     "return 303 when a valid payload is passed in with the shareholders flag and updates NavModel successfully" in new Setup {
-      stubSuccessfulLogin(userId = userId)
-      stubFootprint(200, footprintResponse)
-      stubKeystore(SessionId, regId)
+        stubSuccessfulLogin(userId = userId)
+        stubFootprint(200, footprintResponse(regId))
+        stubKeystore(SessionId, regId)
       await(repo.repository.insertNavModel(regId, handOffNavModelDataUpTo3))
       await(repo.repository.count) shouldBe 1
       val csrfToken = UUID.randomUUID().toString
@@ -84,7 +70,7 @@ class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeA
     }
     "return 303 when a valid payload is passed in without flag, does not update nav model, redirects to H04" in new Setup {
       stubSuccessfulLogin(userId = userId)
-      stubFootprint(200, footprintResponse)
+      stubFootprint(200, footprintResponse(regId))
       stubKeystore(SessionId, regId)
       await(repo.repository.insertNavModel(regId, handOffNavModelDataUpTo3))
       await(repo.repository.count) shouldBe 1
@@ -102,7 +88,7 @@ class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeA
     }
     "return 400 when payload contains invalid data" in new Setup {
       stubSuccessfulLogin(userId = userId)
-      stubFootprint(200, footprintResponse)
+      stubFootprint(200, footprintResponse(regId))
       stubKeystore(SessionId, regId)
       await(repo.repository.insertNavModel(regId, handOffNavModelDataUpTo3))
       await(repo.repository.count) shouldBe 1
@@ -122,7 +108,7 @@ class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeA
   s"${controllers.handoff.routes.GroupController.PSCGroupHandOff().url}" should {
     "Redirect to PSC hand off url from 3-1 entry in nav Model" in new Setup {
       stubSuccessfulLogin(userId = userId,otherParamsForAuth = Some(Json.obj("externalId" -> "foo")))
-      stubFootprint(200, footprintResponse)
+      stubFootprint(200, footprintResponse(regId))
       stubKeystore(SessionId, regId)
       await(repo.repository.insertNavModel(regId, handOffNavModelDataWithJust3_2Requirements))
       await(repo.repository.count) shouldBe 1
@@ -150,7 +136,7 @@ class GroupControllerISpec extends IntegrationSpecBase with LoginStub with FakeA
     }
     "Redirect to post sign in if no nav model exists" in new Setup {
       stubSuccessfulLogin(userId = userId,otherParamsForAuth = Some(Json.obj("externalId" -> "foo")))
-      stubFootprint(200, footprintResponse)
+      stubFootprint(200, footprintResponse(regId))
       stubKeystore(SessionId, regId)
       await(repo.repository.count) shouldBe 0
       val csrfToken = UUID.randomUUID().toString

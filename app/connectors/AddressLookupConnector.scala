@@ -16,14 +16,11 @@
 
 package connectors
 
-import javax.inject.Inject
-
 import config.{FrontendAppConfig, WSHttp}
+import javax.inject.Inject
 import models.NewAddress
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
+import play.api.libs.json.JsObject
 import uk.gov.hmrc.http._
 
 import scala.concurrent.ExecutionContext.Implicits.global
