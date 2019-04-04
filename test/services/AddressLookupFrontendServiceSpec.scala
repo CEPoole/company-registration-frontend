@@ -21,14 +21,16 @@ import fixtures.AddressFixture
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
+import play.api.i18n.MessagesApi
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 import scala.concurrent.Future
 
-class AddressLookupFrontendServiceSpec extends UnitSpec with MockitoSugar with AddressFixture {
+class AddressLookupFrontendServiceSpec extends UnitSpec with MockitoSugar with AddressFixture with WithFakeApplication {
 
   val mockAddressLookupConnector = mock[AddressLookupConnector]
   val mockMetricsService = mock[MetricsService]
@@ -37,6 +39,10 @@ class AddressLookupFrontendServiceSpec extends UnitSpec with MockitoSugar with A
     val service = new AddressLookupFrontendService {
       override val addressLookupFrontendConnector: AddressLookupConnector = mockAddressLookupConnector
       override val metricsService: MetricsService = mockMetricsService
+      override val addressLookupFrontendURL = "testAddressLookupUrl"
+      override val companyRegistrationFrontendURL = "testCompanyRegUrl"
+      override val timeoutInSeconds= 22666
+      override val messagesApi = fakeApplication.injector.instanceOf[MessagesApi]
     }
   }
 
@@ -73,10 +79,30 @@ class AddressLookupFrontendServiceSpec extends UnitSpec with MockitoSugar with A
     val call = Call("testUrl", "")
 
     "return an address" in new Setup {
-      when(mockAddressLookupConnector.getOnRampURL(any(), any[Call]())(any[HeaderCarrier]()))
+      when(mockAddressLookupConnector.getOnRampURL(any[JsObject])(any[HeaderCarrier]()))
         .thenReturn(Future.successful(id))
 
       await(service.buildAddressLookupUrl(timeoutUrl, call)) shouldBe id
+    }
+  }
+  "initconfig" should {
+    "return jsObject for ALF setup with customizable signout and call" in new Setup {
+      val resOfJson =  service.initConfig("foo", Call("GET","/foo"))
+      resOfJson shouldBe Json.parse(
+        """
+          |{"continueUrl":"testCompanyRegUrl/foo",
+          |"homeNavHref":"http://www.hmrc.gov.uk/",
+          |"navTitle":"Set up a limited company and register for Corporation Tax",
+          |"showPhaseBanner":true,"alphaPhase":false,
+          |"phaseBannerHtml":"This is a new service. Help us improve it - send your <a href='https://www.tax.service.gov.uk/register-for-paye/feedback'>feedback</a>.",
+          |"includeHMRCBranding":false,
+          |"showBackButtons":true,
+          |"deskProServiceName":"SCRS",
+          |"lookupPage":{"title":"Company address","heading":"Find the address where the company will carry out most of its business activities","filterLabel":"Property name or number","submitLabel":"Find address","manualAddressLinkText":"Enter address manually"},
+          |"selectPage":{"title":"Choose an address","heading":"Choose an address","proposalListLimit":30,"showSearchAgainLink":true,"searchAgainLinkText":"Search again","editAddressLinkText":"The address is not on the list"},"editPage":{"title":"Enter an address","heading":"Enter an address","line1Label":"Address line 1","line2Label":"Address line 2","line3Label":"Address line 3","showSearchAgainLink":true},
+          |"confirmPage":{"title":"Confirm where the company will carry out most of its business activities","heading":"Confirm where the company will carry out most of its business activities","showSubHeadingAndInfo":false,"submitLabel":"Confirm and continue","showSearchAgainLink":false,"showChangeLink":true,"changeLinkText":"Change"},
+          |"timeout":{"timeoutAmount":22666,"timeoutUrl":"testCompanyRegUrlfoo"}}
+        """.stripMargin)
     }
   }
 }

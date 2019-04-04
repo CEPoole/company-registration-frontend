@@ -94,4 +94,5 @@ class AddressLookupServiceSpec extends SCRSSpec with AddressLookupFixture {
       service.checkFilter(filter) shouldBe "&filter=14+test+test+test+street"
     }
   }
+
 }
