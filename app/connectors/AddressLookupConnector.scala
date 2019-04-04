@@ -39,11 +39,10 @@ trait AddressLookupConnector {
   val addressLookupFrontendURL : String
   val wSHttp : CoreGet with CorePost
 
-  def getOnRampURL(json:JsObject)(implicit hc: HeaderCarrier): Future[String] = {
+  def   getOnRampURL(journeyConfig: JsObject)(implicit hc: HeaderCarrier): Future[String] = {
     val onRampUrl = s"$addressLookupFrontendURL/api/init"
-//    val json = initConfig(signOutUrl, call)
 
-    wSHttp.POST[JsObject, HttpResponse](onRampUrl, json) map {
+    wSHttp.POST[JsObject, HttpResponse](onRampUrl, journeyConfig) map {
       response =>
         response.header("Location").getOrElse {
           Logger.error("[AddressLookupConnector] [getOnRampURL] Location header not set in Address Lookup response")

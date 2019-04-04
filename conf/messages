@@ -407,7 +407,7 @@ errorPages.incorporationRejected.link                               = https://ww
 errorPages.incorporationRejected.para4.1                            = GOV.UK page.
 
 
-## Address Lookup
+## Address Lookup Generic and Specific Page Config
 ##      Lookup Page
 page.addressLookup.lookup.title                                     = Company address
 page.addressLookup.lookup.heading                                   = Find the address where the company will carry out most of its business activities

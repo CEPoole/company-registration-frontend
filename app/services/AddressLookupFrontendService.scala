@@ -59,8 +59,6 @@ case class JourneyConfig(
 }
 
 
-
-
 trait AddressLookupFrontendService {
 
   val addressLookupFrontendConnector: AddressLookupConnector
@@ -69,9 +67,18 @@ trait AddressLookupFrontendService {
   val companyRegistrationFrontendURL : String
   val timeoutInSeconds : Int
   val messagesApi: MessagesApi
-  private def messageKey(key: String): String = s"page.addressLookup.$key"
+  private[services] def messageKey(specificJourneyKey: String)(key: String): String =  {
+    val potentialKey = s"page.addressLookup.$specificJourneyKey.$key"
+    val probableKey = s"page.addressLookup.$key"
+     if (messagesApi.isDefinedAt(probableKey)) {
+       probableKey
+     } else {
+       potentialKey
+     }
+  }
 
-def topLevelConfigGenerator(continueUrl:String) = {
+
+private def topLevelConfigGenerator(continueUrl:String) = {
   Json.obj(
     "continueUrl" -> s"$continueUrl",
     "homeNavHref" -> "http://www.hmrc.gov.uk/",
@@ -87,7 +94,8 @@ def topLevelConfigGenerator(continueUrl:String) = {
    s"$companyRegistrationFrontendURL${call.url}"
  }
 
-  private[services] def initConfig(signOutUrl: String, call: Call): JsObject = {
+  private[services] def initConfig(signOutUrl: String, call: Call, specificJourneyKey: String = "PPOB"): JsObject = {
+    val messageKeyWithSpecKey = messageKey(specificJourneyKey)(_)
     JourneyConfig(
       topLevelConfig = topLevelConfigGenerator(continueUrl(call)),
       timeoutConfig = Json.obj( "timeout" -> Json.obj(
@@ -95,39 +103,39 @@ def topLevelConfigGenerator(continueUrl:String) = {
         "timeoutUrl" -> s"$companyRegistrationFrontendURL$signOutUrl"
       )),
       lookupPageConfig = Json.obj("lookupPage" -> Json.obj(
-        "title" -> messagesApi(messageKey("lookup.title")),
-        "heading" -> messagesApi(messageKey("lookup.heading")),
-        "filterLabel" -> messagesApi(messageKey("lookup.filter")),
-        "submitLabel" -> messagesApi(messageKey("lookup.submit")),
-        "manualAddressLinkText" -> messagesApi(messageKey("lookup.manual"))
+        "title" -> messagesApi(messageKeyWithSpecKey("lookup.title")),
+        "heading" -> messagesApi(messageKeyWithSpecKey("lookup.heading")),
+        "filterLabel" -> messagesApi(messageKeyWithSpecKey("lookup.filter")),
+        "submitLabel" -> messagesApi(messageKeyWithSpecKey("lookup.submit")),
+        "manualAddressLinkText" -> messagesApi(messageKeyWithSpecKey("lookup.manual"))
       )),
       selectPageConfig = Json.obj(
       "selectPage" -> Json.obj(
-        "title" -> messagesApi(messageKey("select.description")),
-        "heading" -> messagesApi(messageKey("select.description")),
+        "title" -> messagesApi(messageKeyWithSpecKey("select.description")),
+        "heading" -> messagesApi(messageKeyWithSpecKey("select.description")),
         "proposalListLimit" -> 30,
         "showSearchAgainLink" -> true,
-        "searchAgainLinkText" -> messagesApi(messageKey("select.searchAgain")),
-        "editAddressLinkText" -> messagesApi(messageKey("select.editAddress"))
+        "searchAgainLinkText" -> messagesApi(messageKeyWithSpecKey("select.searchAgain")),
+        "editAddressLinkText" -> messagesApi(messageKeyWithSpecKey("select.editAddress"))
       )),
       editPageConfig = Json.obj(
       "editPage" -> Json.obj(
-        "title" -> messagesApi(messageKey("edit.description")),
-        "heading" -> messagesApi(messageKey("edit.description")),
-        "line1Label" -> messagesApi(messageKey("edit.line1")),
-        "line2Label" -> messagesApi(messageKey("edit.line2")),
-        "line3Label" -> messagesApi(messageKey("edit.line3")),
+        "title" -> messagesApi(messageKeyWithSpecKey("edit.description")),
+        "heading" -> messagesApi(messageKeyWithSpecKey("edit.description")),
+        "line1Label" -> messagesApi(messageKeyWithSpecKey("edit.line1")),
+        "line2Label" -> messagesApi(messageKeyWithSpecKey("edit.line2")),
+        "line3Label" -> messagesApi(messageKeyWithSpecKey("edit.line3")),
         "showSearchAgainLink" -> true
       )),
       confirmPageConfig = Json.obj(
       "confirmPage" -> Json.obj(
-        "title" -> messagesApi(messageKey("confirm.description")),
-        "heading" -> messagesApi(messageKey("confirm.description")),
+        "title" -> messagesApi(messageKeyWithSpecKey("confirm.description")),
+        "heading" -> messagesApi(messageKeyWithSpecKey("confirm.description")),
         "showSubHeadingAndInfo" -> false,
-        "submitLabel" -> messagesApi(messageKey("confirm.continue")),
+        "submitLabel" -> messagesApi(messageKeyWithSpecKey("confirm.continue")),
         "showSearchAgainLink" -> false,
         "showChangeLink" -> true,
-        "changeLinkText" -> messagesApi(messageKey("confirm.change"))
+        "changeLinkText" -> messagesApi(messageKeyWithSpecKey("confirm.change"))
       ))
     ).deepMerge
   }

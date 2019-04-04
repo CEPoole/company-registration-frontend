@@ -35,7 +35,7 @@ class PPOBControllerISpec extends IntegrationSpecBase with LoginStub with FakeAp
         .post(Map("Csrf-Token" -> Seq("nocheck"), "addressChoice" -> Seq("Other")))
 
     await(fResponse).status shouldBe 303
-    getPOSTRequestJsonBody("/api/init") shouldBe Json.parse(
+    getPOSTRequestJsonBody("/api/init") shouldBe Json.parse (
       s"""
         |{"continueUrl":"http://localhost:9970${controllers.reg.routes.PPOBController.saveALFAddress().url}",
         |"homeNavHref":"http://www.hmrc.gov.uk/",
