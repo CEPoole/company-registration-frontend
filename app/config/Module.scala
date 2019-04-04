@@ -85,7 +85,6 @@ class Module extends AbstractModule {
     bind(classOf[CompanyContactDetailsService]).to(classOf[CompanyContactDetailsServiceImpl]).asEagerSingleton()
     bind(classOf[MetaDataService]).to(classOf[MetaDataServiceImpl]).asEagerSingleton()
     bind(classOf[DeskproService]).to(classOf[DeskproServiceImpl]).asEagerSingleton()
-    bind(classOf[AddressLookupService]).to(classOf[AddressLookupServiceImpl]).asEagerSingleton()
     bind(classOf[AddressLookupFrontendService]).to(classOf[AddressLookupFrontendServiceImpl]).asEagerSingleton()
     bind(classOf[PPOBService]).to(classOf[PPOBServiceImpl]).asEagerSingleton()
     bind(classOf[QuestionnaireService]).to(classOf[QuestionnaireServiceImpl]).asEagerSingleton()

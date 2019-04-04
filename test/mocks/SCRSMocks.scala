@@ -35,7 +35,6 @@ import scala.concurrent.Future
 
 trait SCRSMocks
   extends CompanyContactDetailsServiceMock
-    with AddressLookupServiceMock
     with AccountingServiceMock
     with CompanyRegistrationConnectorMock
     with KeystoreMock
@@ -81,7 +80,6 @@ trait SCRSMocks
     reset(mockAuditConnector)
     reset(mockS4LConnector)
     reset(mockWSHttp)
-    reset(mockAddressLookupService)
     reset(mockKeystoreConnector)
     reset(mockSessionCache)
     reset(mockCompanyRegistrationConnector)

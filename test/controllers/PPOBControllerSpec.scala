@@ -52,7 +52,6 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
     val controller = new PPOBController {
       override val authConnector = mockAuthConnector
       override val s4LConnector = mockS4LConnector
-      override val addressLookupService = mockAddressLookupService
       override val keystoreConnector = mockKeystoreConnector
       override val compRegConnector = mockCompanyRegistrationConnector
       override val pPOBService = mockPPOBService
