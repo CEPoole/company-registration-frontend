@@ -39,7 +39,7 @@ trait AddressLookupConnector {
   val addressLookupFrontendURL : String
   val wSHttp : CoreGet with CorePost
 
-  def   getOnRampURL(journeyConfig: JsObject)(implicit hc: HeaderCarrier): Future[String] = {
+  def getOnRampURL(journeyConfig: JsObject)(implicit hc: HeaderCarrier): Future[String] = {
     val onRampUrl = s"$addressLookupFrontendURL/api/init"
 
     wSHttp.POST[JsObject, HttpResponse](onRampUrl, journeyConfig) map {

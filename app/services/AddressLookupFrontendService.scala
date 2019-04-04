@@ -67,18 +67,17 @@ trait AddressLookupFrontendService {
   val companyRegistrationFrontendURL : String
   val timeoutInSeconds : Int
   val messagesApi: MessagesApi
-  private[services] def messageKey(specificJourneyKey: String)(key: String): String =  {
+  private[services] def messageKey(specificJourneyKey: String, mAPI: MessagesApi = messagesApi)(key: String): String =  {
     val potentialKey = s"page.addressLookup.$specificJourneyKey.$key"
     val probableKey = s"page.addressLookup.$key"
-     if (messagesApi.isDefinedAt(probableKey)) {
+     if (mAPI.isDefinedAt(probableKey)) {
        probableKey
      } else {
        potentialKey
      }
   }
 
-
-private def topLevelConfigGenerator(continueUrl:String) = {
+private def topLevelConfigGenerator(continueUrl:String):JsObject = {
   Json.obj(
     "continueUrl" -> s"$continueUrl",
     "homeNavHref" -> "http://www.hmrc.gov.uk/",
@@ -140,11 +139,12 @@ private def topLevelConfigGenerator(continueUrl:String) = {
     ).deepMerge
   }
 
-  def buildAddressLookupUrl(signOutUrl: String, call: Call)(implicit hc: HeaderCarrier): Future[String] = {
+    def buildAddressLookupUrl(call: Call, specificJourneyKey: String)(implicit hc: HeaderCarrier): Future[String] = {
     addressLookupFrontendConnector.getOnRampURL(
       initConfig(
         controllers.reg.routes.SignInOutController.timeoutShow().url,
-        call)
+        call,
+      specificJourneyKey)
     )
   }
 

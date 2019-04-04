@@ -169,7 +169,7 @@ class PPOBControllerSpec extends SCRSSpec with PPOBFixture with WithFakeApplicat
 
     "handle a none RO/PPOB Address selection correctly" in new Setup {
       mockCheckStatus()
-      when(mockAddressLookupFrontendService.buildAddressLookupUrl(Matchers.anyString(), Matchers.any())(Matchers.any[HeaderCarrier]()))
+      when(mockAddressLookupFrontendService.buildAddressLookupUrl(Matchers.any(),Matchers.any())(Matchers.any[HeaderCarrier]()))
         .thenReturn(Future.successful("TEST/redirectUrl"))
 
       submitWithAuthorisedUserRetrieval(controller.submit, submission("Other"), credID) {

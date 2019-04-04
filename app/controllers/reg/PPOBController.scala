@@ -132,7 +132,7 @@ trait PPOBController extends FrontendController with AuthFunction with AddressCo
                 case "PPOB" =>
                   Future.successful(Redirect(controllers.reg.routes.CompanyContactDetailsController.show()))
                 case "Other" =>
-                  addressLookupFrontendService.buildAddressLookupUrl("ctreg1", controllers.reg.routes.PPOBController.saveALFAddress()) map {
+                  addressLookupFrontendService.buildAddressLookupUrl(controllers.reg.routes.PPOBController.saveALFAddress(), "PPOB") map {
                     redirectUrl => Redirect(redirectUrl)
                   }
                 case unexpected =>

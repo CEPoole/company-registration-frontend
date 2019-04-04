@@ -82,7 +82,20 @@ class AddressLookupFrontendServiceSpec extends UnitSpec with MockitoSugar with A
       when(mockAddressLookupConnector.getOnRampURL(any[JsObject])(any[HeaderCarrier]()))
         .thenReturn(Future.successful(id))
 
-      await(service.buildAddressLookupUrl(timeoutUrl, call)) shouldBe id
+      await(service.buildAddressLookupUrl(call, "foo")) shouldBe id
+    }
+  }
+  "messageKey" should {
+    val mockMApi = mock[MessagesApi]
+    "return the probable key (non page specific first)" in new Setup {
+      when(mockMApi.isDefinedAt(any())(any())).thenReturn(true)
+      val res = service.messageKey("foo",mockMApi)("bar")
+      res shouldBe "page.addressLookup.bar"
+    }
+    "return the potential key if probably key doesnt exist" in new Setup {
+      when(mockMApi.isDefinedAt(any())(any())).thenReturn(false)
+      val res = service.messageKey("foo",mockMApi)("bar")
+      res shouldBe "page.addressLookup.foo.bar"
     }
   }
   "initconfig" should {
