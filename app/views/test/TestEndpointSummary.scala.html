@@ -18,33 +18,40 @@
 
 @main_template(title = "Feature switch", mainClass = Some("full-width")) {
 
-<div class="grid-row">
-    <div class="column-one-third">
-
-            <h1 class="form-title heading-large" id="main-heading">Test Endpoints</h1>
-
-
+<div>
+            <h1 class="form-title heading-large" id="main-heading">Register Your Company Test Endpoints</h1>
+            <p>NOTE: you will need to be logged into the service to use most of these endpoints.</p>
+            <br>
         <div>
-            <a class="button btn" role="button" href="feature-switch">Feature flags</a>
+            <a href="feature-switch">Feature switches</a>
+            <p>This will display a page with all the Register Your Company feature switches.</p>
         </div>
-        <br>
         <div>
-            <a class="button btn" role="button" href="verify-email/true">Verify email</a>
+            <a href="verify-email/true">Verify email</a>
+            <p>This will verify the email for the CT journey.</p>
         </div>
-        <br>
         <div>
-            <a class="button btn" role="button" href="get-s4l">Test endpoint</a>
+            <a href="get-s4l">Test data endpoint</a>
+            <p>This endpoint will allow you to post data into mongo for your current journey.</p>
         </div>
-        <br>
         <div>
-            <a class="button btn" role="button" href="check-submission-status">Check submission status</a>
+            <a href="setup-nav-model">Setup Nav Model</a>
+            <p>This endpoint sets up all the handoff/handback nav models for a journey.</p>
         </div>
-        <br>
         <div>
-            <a class="button btn" role="button" href="submission-check-trigger">Submission trigger</a>
+            <a href="incorporate/REPLACE_THIS_WITH_TXID">Incorporate Company</a>
+            <p>This will allow you to incorporate the company for your current journey.</p>
+            <p>You will need to add the TransacionID of your current journey to the end of the URL.</p>
         </div>
-
+        <div>
+            <a href="post-etmp">ETMP DES Data</a>
+            <p>This allows you to post the CT data you want back from DES. (For example CT rejeected/accepted etc.</p>
+        </div>
+        <div>
+            <a href="simulate-des-post/REPLACE_THIS_WITH_ACKREF">Simulate CT response from ETMP</a>
+            <p>This will simulate the CT response data (which you entered above) back from DES</p>
+        </div>
+    <br>
     </div>
 
-</div>
 }
